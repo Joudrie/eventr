@@ -56,3 +56,23 @@ tonight-only event waits.
 - Do you want a poster-facing view — "142 people said they're going" — as a retention hook for
   organizers? I think this is quietly the strongest reason for a town rec department to keep
   posting.
+
+---
+
+## Round 2 — new direction (from voice notes)
+
+**Locked in:**
+- No likes, no followers, no DMs, no profiles. Post + Going/Interested + comments. That's it.
+- Comments exist. Author replies get pinned to top (fixes "you never said what time").
+- Guest by default. Identity tied to device. Account only needed to post.
+- Anyone posts free, always. Money comes from verification (~$3/mo) and cheap event boosts.
+- Prices are variable/tiered ($5 GA, $20 front row) — so price is a *range or label*, not one number.
+- Native app is the real goal.
+- Sort UX modeled on Facebook Marketplace.
+- Purple/yellow is a preference, not a requirement.
+- Hard constraint: must not read as AI-generated. No emoji. No template smell.
+
+**Open:**
+- College-only launch, or general from day one?
+- If college: how to verify students without owning .edu email security?
+- Address typed in + free geocoder, vs GPS?
