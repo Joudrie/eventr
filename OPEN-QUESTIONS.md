@@ -1,54 +1,51 @@
 # Open Questions
 
-Things I need decided (or at least leaned on) before building. Each has my recommendation so
-"sounds good" is a valid answer.
+## Decided ✅
 
-## Blocking — affects what gets built
+| Question | Decision |
+|---|---|
+| **Platform** | Mobile-first **web app**. Ships fast, no App Store review, textable link. Native later if it earns it. |
+| **RSVP model** | **Going + Interested.** "Going" is the headline count; "Interested" doubles as the bookmark. No downvote. |
+| **Paid events** | **Listed, with outbound links.** Price is display-only, "Get tickets" leaves the app. We never touch money — no PCI scope, no ticketing regulation. |
+| **Moderation** | **First post from a new poster is human-reviewed; that poster is then trusted forever.** Spammers never reach the feed, regulars post same-day. Trust is revocable on reports. |
+
+---
+
+## Still open — blocking
 
 **1. Name: "Event" or "Eventr"?**
 The logo mock says EVENT. The app header mock says Eventr. The repo is `eventr`.
 → *Rec: Eventr.* "Event" is unsearchable, untrademarkable, and un-domainable. Eventr is
-distinct and the mock header already uses it.
+distinct and the mock header already uses it. **Defaulting to Eventr unless you say otherwise.**
 
-**2. Web app or native iOS first?**
-→ *Rec: mobile-first web app.* Ships in days not months, no App Store review, anyone in Boston
-can open a link. If it takes off, wrap it or go native later. Native first means weeks of
-plumbing before a single Wakefield resident sees it.
-
-**3. "Likes" or "I'm going"?**
-The mock shows "55 Likes." Your description says yes-I'm-going / no-I'm-not.
-→ *Rec: "Going."* It's the number that actually helps someone decide, it's the number a poster
-wants to see, and it's the data worth aggregating. "Not going" I'd cut entirely — it adds no
-signal and invites pile-ons. Keep a separate save/bookmark for "interested, not committed."
-
-**4. Location: GPS or type your town?**
+**2. Location: GPS or type your town?**
 → *Rec: ask for GPS, fall back to a town/ZIP picker, and remember it.* No account, no
-permission wall. Storing a town instead of coordinates is also much cleaner privacy-wise.
+permission wall. Storing a town instead of raw coordinates is also much cleaner privacy-wise.
 
-**5. Paid events — in or out?**
-You said "we're not selling tickets," but the mock has a $5 museum night and a $35 Theo Von show.
-→ *Rec: list them, link out, never process money.* Price is display-only; "Get tickets" opens the
-organizer's own link. Keeps PCI and ticketing regulation entirely off the table.
+---
 
-## Non-blocking — I'll assume the recommendation unless you say otherwise
+## Assumed — say the word and I'll change any of these
 
-**6. Do unverified posts go live instantly?**
-→ *Assuming yes,* with a report button and a "verified only" filter toggle. Gating kills
-same-day posts, which are the best posts.
-
-**7. How long after an event ends does it archive?**
+**3. How long after an event ends does it archive?**
 → *Assuming ~2 hours after end time,* then it drops out of the feed into Archive.
 
-**8. Who can mark an event "full" / "filling up"?**
+**4. Who can mark an event "full" / "filling up"?**
 → *Assuming the poster,* via their magic edit link.
 
-**9. Ad slots now or later?**
+**5. Ad slots now or later?**
 → *Assuming placeholder slots now* — same card shape, labeled "Sponsored," so the feed rhythm is
 right and real inventory drops in later.
 
-**10. Which categories ship first?**
+**6. Which categories ship first?**
 → *Assuming:* Music, Food, Sports & Rec, Running, Arts, Nightlife, Family, Market, Community,
-Campus. Easy to change.
+Campus.
+
+**7. How fast does the review queue need to be?**
+→ *Assuming a few hours,* with the poster shown an honest "usually reviewed within a few hours"
+message. This is the one real cost of the trusted-poster model — a new poster with a
+tonight-only event waits.
+
+---
 
 ## Later, but worth thinking about
 

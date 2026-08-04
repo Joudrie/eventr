@@ -1,5 +1,10 @@
 # Eventr — Product Definition
 
+**Decided so far:** mobile-first web app · Going + Interested (no downvote) · paid events listed
+with outbound links, never in-app payment · first post from a new poster is human-reviewed, then
+that poster is trusted forever.
+
+
 > "You get in the car with a friend. 'What do you wanna do?' 'I'm down for anything.'
 > 'Me too.' Forty minutes later you're in a Chick-fil-A parking lot for the thousandth time."
 
@@ -42,6 +47,7 @@ Practical consequences of this stance:
 | **Secondary** | College students (dense, bored, broke, mobile — the ideal early adopter) |
 | **Posters** | Town rec departments, small venues, student orgs, church groups, run clubs, bands, a high school senior class, one guy with a grill |
 | **Launch geography** | Greater Boston. Wakefield/North Shore as the seed community, expanding by radius. |
+| **Platform** | Mobile-first web app. No install, no App Store review — a link you can text someone. Native wrapper is a later decision, not a launch blocker. |
 
 Deliberately *not* launching nationally. A sparse feed is a dead app. Depth in one metro beats
 breadth across fifty.
@@ -78,9 +84,20 @@ Matching the mockup:
 - Venue name + address, tap to open in Maps
 - Contact — link, email, phone, or socials
 - "Get tickets" outbound link if paid (we send you elsewhere; we don't sell)
-- Going / Not Going
+- **Going** / **Interested**
 - Share
 - Report
+
+### 5.2a Going vs Interested
+
+Two levels of commitment, both public counts:
+
+- **Going** — committed. This is the headline number on the card ("55 going").
+- **Interested** — saved for later, might show up. Shown secondary ("+18 interested").
+
+There is no "not going." A downvote adds nothing to someone deciding where to spend their
+Saturday and invites pile-ons on small community posts. Interested doubles as the bookmark —
+tapping it saves the event to your list.
 
 ### 5.3 Sorting and filtering
 
@@ -116,21 +133,30 @@ The tension: gating every post behind manual review kills the "the senior class 
 *tonight*" use case, which is exactly the kind of post that makes this app feel alive. But a
 totally open Yik Yak-style firehose invites spam, harassment, and fake events.
 
-**Proposed resolution — verification as a badge, not a gate:**
+**Resolution — trust the poster, not the post.**
+
+A poster's *first* event goes into a human review queue. Once you've approved that poster, every
+event they submit afterward goes live instantly. So the town rec department and the run club and
+the senior class get reviewed exactly once, then never again — while a brand-new spammer never
+reaches the feed at all.
 
 | Tier | How you get it | What it looks like |
 |---|---|---|
-| **Unverified** | Post it. Live immediately. | Plain card. Report button prominent. |
-| **Community verified** | A human reviewed it and confirmed it's a real event | Grey check |
+| **Pending** | New poster's first submission | Not in the feed. Visible only to the poster and the review queue. |
+| **Trusted** | Their first event was approved | Posts go live instantly, forever after. Plain card. |
 | **Verified organizer** | Business/org proves identity — free for nonprofits, town depts, schools; paid for businesses (the Twitter model) | Blue check, as in the mockup |
 
-Posts are live instantly, but unverified posts can be filtered out with one toggle, so the user
-decides their own trust level. Human review is a queue that upgrades trust rather than a
-bottleneck that blocks posting.
+This keeps same-day posting alive for everyone who has ever posted before, which after a few
+weeks is nearly everyone who matters. The cost is that a genuinely new poster with a
+tonight-only event waits on review — so the queue needs to be fast, and the poster should see an
+honest "usually reviewed within a few hours" message rather than silence.
+
+Trust is revocable: enough reports and a poster drops back to pending, with all their live
+events hidden.
 
 Anti-abuse without accounts:
 - Post via an email or phone number → we send a magic link that lets you edit/cancel your event.
-  Not an account, just proof you can be reached.
+  Not an account, just proof you can be reached. Trust attaches to that contact.
 - Rate limit per contact and per device.
 - N reports → auto-hidden pending human review.
 
