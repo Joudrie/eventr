@@ -72,7 +72,15 @@ tonight-only event waits.
 - Purple/yellow is a preference, not a requirement.
 - Hard constraint: must not read as AI-generated. No emoji. No template smell.
 
-**Open:**
-- College-only launch, or general from day one?
-- If college: how to verify students without owning .edu email security?
-- Address typed in + free geocoder, vs GPS?
+**Also decided:**
+- **Whole town, not college-gated.** Campus feeds are a later feature. No .edu verification to build.
+- **Greater Boston** for now, Wakefield/North Shore as the seed.
+- **Price as a label** (`Free` / `$5+` / `Paid`), real tiers in the detail view.
+- **Strict comment moderation.** Author can delete comments on their event and lock the thread.
+- **Eventr** as the working name.
+- **App Store eventually** → building on Expo so web ships now and iOS ships later from one codebase.
+
+**Still open:**
+- Address typed in + free geocoder, vs GPS? (Rec: town picker default, GPS optional.)
+- Seeding from public town/library calendars, or 100% user-posted from day one?
+- Do you want the organizer-facing "142 going" view in v1? (Rec: yes, it's the retention hook.)
