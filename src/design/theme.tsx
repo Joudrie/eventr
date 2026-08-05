@@ -45,3 +45,15 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 export function useTheme(): Theme {
   return use(ThemeContext);
 }
+
+/**
+ * Renders a subtree under an explicit theme instead of the system one.
+ *
+ * Exists for the palette comparison in `app/palettes.tsx`: judging a palette on a
+ * swatch grid tells you almost nothing, and judging it behind forty real event cards
+ * tells you everything. This is the seam that lets the real feed be rendered several
+ * times over, once per candidate.
+ */
+export function ThemeOverride({ theme, children }: { theme: Theme; children: ReactNode }) {
+  return <ThemeContext value={theme}>{children}</ThemeContext>;
+}

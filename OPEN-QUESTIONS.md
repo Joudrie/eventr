@@ -104,10 +104,12 @@ Full brief in `NEXT-PROMPT.md`.
 - Ingest events from public town/library/civic listings: auto-drafted description, **source cited
   and attributed**, queued as `pending`, nothing live without manual approval.
 
-**Needs resolving:**
-- **Promoted posts pinned to the top of the feed** contradicts the locked rule that a boost is a
-  bounded lift which never guarantees the top slot — and a passing test in `scripts/test-feed.mts`
-  enforces it. Recommendation: a separated, labeled promoted slot *above* the ranked feed, so the
-  advertiser gets the top of the screen and the ranking stays honest.
-- Do promoted events and paid ads share one frequency budget or stack? Stacking at 1-in-7 each is
-  really 1-in-3.5.
+**Resolved:**
+- **The promoted slot sits above the ranked list, not inside it.** One promoted result at the top
+  of a given page or search — "what's free around me" shows a promoted result first — then ads
+  every ~7 cards as you scroll. The ranking itself stays untouched, so the bounded-boost rule and
+  its test in `scripts/test-feed.mts` both survive intact.
+
+**Still open:**
+- Which palette ships. See `docs/COLOR-STUDY.md` — recommendation is **Almanac**, with **Dusk** the
+  pick if keeping the existing balloon logo matters more than the warmth gain.

@@ -8,6 +8,7 @@
  * Run: npm run audit:contrast
  */
 
+import { PALETTE_CANDIDATES } from '../src/design/palettes.ts';
 import { darkTheme, lightTheme, type Theme } from '../src/design/tokens.ts';
 
 const AA_NORMAL = 4.5;
@@ -113,8 +114,21 @@ function pairsFor(theme: Theme): Pair[] {
 let failures = 0;
 const rows: string[] = [];
 
-for (const theme of [lightTheme, darkTheme]) {
-  rows.push(`\n  ${theme.scheme.toUpperCase()}`);
+/**
+ * The shipping theme plus every candidate from the color study. A palette that cannot
+ * clear AA is not a candidate, so this runs before any of them can be chosen.
+ */
+const auditTargets: [string, Theme][] = [
+  ['CURRENT', lightTheme],
+  ['CURRENT', darkTheme],
+  ...PALETTE_CANDIDATES.flatMap((candidate): [string, Theme][] => [
+    [candidate.name.toUpperCase(), candidate.light],
+    [candidate.name.toUpperCase(), candidate.dark],
+  ]),
+];
+
+for (const [label, theme] of auditTargets) {
+  rows.push(`\n  ${label} · ${theme.scheme}`);
   for (const pair of pairsFor(theme)) {
     const value = ratio(pair.fg, pair.bg);
 
