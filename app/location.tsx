@@ -33,7 +33,16 @@ export default function LocationGate() {
 
   const choose = (town: Town) => {
     setTown(town);
-    router.replace('/');
+    /**
+     * Go back to the feed that is already on the stack rather than replacing this
+     * screen with a second copy of it. Reached from the header, `replace('/')` left
+     * the original feed mounted and hidden underneath — invisible to the user, but a
+     * whole extra screen holding its own query and scroll state.
+     *
+     * On first launch there is nothing to go back to, so replace is correct there.
+     */
+    if (router.canGoBack()) router.back();
+    else router.replace('/');
   };
 
   const locateMe = async () => {

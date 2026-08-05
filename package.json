@@ -16,7 +16,8 @@
     "prepare": "git config core.hooksPath .githooks || true",
     "audit:contrast": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --import ./scripts/register-resolver.mjs scripts/contrast-audit.mts",
     "test:feed": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --import ./scripts/register-resolver.mjs scripts/test-feed.mts",
-    "test:format": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --import ./scripts/register-resolver.mjs scripts/test-format.mts"
+    "test:format": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --import ./scripts/register-resolver.mjs scripts/test-format.mts",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@expo/metro-runtime": "~57.0.8",
@@ -40,6 +41,7 @@
     "react-native-web": "^0.21.2"
   },
   "devDependencies": {
+    "@playwright/test": "^1.62.1",
     "@types/react": "~19.2.2",
     "eslint": "^9.39.5",
     "eslint-config-expo": "^57.0.1",

@@ -37,25 +37,28 @@ them.
 **To close:** a Supabase project, apply the two migrations, then run the forbidden-operation checks
 from `docs/PHASE-1.md`. Half a day.
 
-### 2. No committed UI test suite
+### 2. ~~No committed UI test suite~~ — **closed**
 
-Every claim about the running app in these reports came from driving a real browser with Playwright
-— posting an event, checking scroll restoration, tapping Going five times. **None of that is
-checked in.** A reviewer cannot re-run my verification, and nothing catches a regression in those
-flows.
+`e2e/` now holds **21 Playwright tests** covering the flows every report in `docs/` made claims
+about: first run, feed density, the Now tab, the empty state's wording, filters composing and
+surviving a town change, Going/Interested including rapid taps and persistence, posting with tags,
+date validation, scroll restoration, deep links, and page metadata.
 
-This is the gap I would close first, because it is cheap and it makes every other review more
-trustworthy.
+Run with `npm run test:e2e`. Playwright starts the dev server itself.
 
-**To close:** commit the flows as an E2E suite — first run, filters composing, post an event,
-RSVP persistence, scroll restoration, deep link. A day.
+Two of them encode mistakes that already happened once: the empty state asserts *"Searched 1 mile"*
+singular, and the scroll-restoration test only taps cards already on screen, because tapping an
+off-screen one makes Playwright scroll the feed and then blame the app.
 
-### 3. Nothing runs on push
+### 3. ~~Nothing runs on push~~ — **closed**
 
-`npm run verify` is a pre-commit hook, which protects `main` only as long as nobody uses
-`--no-verify`. The one workflow in `.github/workflows/` deploys to Pages; it does not gate anything.
+`.github/workflows/ci.yml` runs three jobs on every push and pull request: `verify` (typecheck,
+lint, format, contrast audit, 47 unit tests), the E2E suite, and a production web build that
+asserts the export actually produced per-event pages with real titles.
 
-**To close:** a CI workflow running `verify` plus the E2E suite on every push and PR. An hour.
+That last job matters because the static export is a different code path from the dev server, and
+has hidden real bugs before — the empty `<title>` shipped for days precisely because nothing built
+and inspected the export.
 
 ### 4. Nothing verified on a real device
 
@@ -94,12 +97,10 @@ Not gaps in review readiness so much as scope that does not exist yet:
 
 ## What I would do, in order
 
-1. **Commit the E2E suite.** Cheapest, and it makes every other review verifiable rather than
-   trusted.
-2. **Turn on CI.** An hour, and it stops `main` from drifting.
-3. **Stand up Supabase and prove RLS.** The largest untested surface in the project.
+1. ~~Commit the E2E suite.~~ Done — 21 tests.
+2. ~~Turn on CI.~~ Done — verify, E2E, and a production build check.
+3. **Stand up Supabase and prove RLS.** Now the largest untested surface in the project by a wide
+   margin. Needs a Supabase project.
 4. **Device pass on a Mac.** Closes six deferred items at once, including the one known platform
-   bug.
+   bug (pull-to-refresh has no web or Android path).
 5. **Draft Terms and a privacy policy.** Blocking for real users, not for review.
-
-Steps 1 and 2 need nothing from anyone. Step 3 needs a Supabase project. Step 4 needs your Mac.
