@@ -29,6 +29,39 @@ import { border, radius, size, space } from '../tokens';
 const THUMB = 28;
 const TRACK_HEIGHT = 4;
 
+/*
+ * These three helpers are worklets, and their order is load-bearing.
+ *
+ * Reanimated's babel plugin rewrites a worklet function into a `const` binding, and a
+ * `const` referenced above its own line is a temporal dead zone error — so a worklet
+ * defined below its first use throws at module evaluation. Defining them after the
+ * component, which is the ordinary way to write a file, produced exactly that:
+ *
+ *   Metro error: Cannot access 'y' before initialization
+ *
+ * It only appeared in the static export. The dev server evaluates modules differently
+ * and was perfectly happy, which is precisely why the E2E suite runs against the built
+ * export as well — this is the bug that job exists to catch, caught on its first outing.
+ *
+ * clamp01 comes first because toProgress calls it.
+ */
+
+function clamp01(value: number): number {
+  'worklet';
+  return Math.min(1, Math.max(0, value));
+}
+
+function toProgress(value: number, min: number, max: number): number {
+  'worklet';
+  if (max === min) return 0;
+  return clamp01((value - min) / (max - min));
+}
+
+function snap(progress: number, min: number, max: number, step: number): number {
+  const raw = min + progress * (max - min);
+  return Math.min(max, Math.max(min, Math.round(raw / step) * step));
+}
+
 export type SliderProps = {
   value: number;
   min: number;
@@ -172,22 +205,6 @@ export function Slider({
       </View>
     </GestureDetector>
   );
-}
-
-function toProgress(value: number, min: number, max: number): number {
-  'worklet';
-  if (max === min) return 0;
-  return clamp01((value - min) / (max - min));
-}
-
-function snap(progress: number, min: number, max: number, step: number): number {
-  const raw = min + progress * (max - min);
-  return Math.min(max, Math.max(min, Math.round(raw / step) * step));
-}
-
-function clamp01(value: number): number {
-  'worklet';
-  return Math.min(1, Math.max(0, value));
 }
 
 const styles = StyleSheet.create({

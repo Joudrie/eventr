@@ -25,7 +25,7 @@ import Animated, {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { strings } from '@/copy/strings';
-import { spring, timing } from '@/design/motion';
+import { EASING, spring, timing } from '@/design/motion';
 import {
   Badge,
   Button,
@@ -111,7 +111,18 @@ export function EventDetail({ event, now, onClose }: EventDetailProps) {
       onClose();
       return;
     }
-    openness.value = withTiming(0, timing('settle'), (finished) => {
+    /**
+     * `move` with the exit curve, not `settle` with the standard one.
+     *
+     * The close was running the *entry's* easing at the *slowest* duration in the
+     * ladder, which is why it felt like it was struggling: 320ms of a curve designed to
+     * decelerate into place, played backwards, against a spring-driven open. The tokens
+     * already said what this should be — `move` is documented as the shared-element
+     * duration and `EASING.exit` as the curve for things leaving the screen. A close
+     * that is quicker than its open is also just how dismissals should feel; you have
+     * already decided, and waiting on the animation is the only thing left to do.
+     */
+    openness.value = withTiming(0, timing('move', EASING.exit), (finished) => {
       if (finished) runOnJS(onClose)();
     });
   };
@@ -143,9 +154,17 @@ export function EventDetail({ event, now, onClose }: EventDetailProps) {
       }
     });
 
-  /** The screen itself slides and dims as you drag it away. */
+  /**
+   * The screen slides as you drag it away, and dissolves as it shrinks back to the card.
+   *
+   * Without the opacity term the root stays fully opaque page colour for the whole
+   * close, so the header shrinks away over a blank screen and then the feed appears in
+   * a single frame. The shrink and the handover have to be the same movement or the end
+   * of it reads as a cut.
+   */
   const screenStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: dragX.value }],
+    opacity: interpolate(openness.value, [0, 0.6], [0, 1], 'clamp'),
   }));
 
   const backdropStyle = useAnimatedStyle(() => ({
@@ -187,7 +206,7 @@ export function EventDetail({ event, now, onClose }: EventDetailProps) {
           style={[StyleSheet.absoluteFill, backdropStyle, { backgroundColor: theme.color.page }]}
         />
 
-        <View style={[styles.bar, { paddingTop: insets.top + space.sm }]}>
+        <Animated.View style={[styles.bar, bodyStyle, { paddingTop: insets.top + space.sm }]}>
           <Press
             onPress={close}
             feedback="select"
@@ -197,7 +216,7 @@ export function EventDetail({ event, now, onClose }: EventDetailProps) {
           >
             <Icon name="back" size={22} />
           </Press>
-        </View>
+        </Animated.View>
 
         <ScrollView
           contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + space.xxl }]}
