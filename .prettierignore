@@ -1,0 +1,7 @@
+# Specs are hand-authored prose — reflowing tables and blockquotes hurts readability.
+*.md
+
+node_modules/
+.expo/
+dist/
+package-lock.json

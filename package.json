@@ -1,0 +1,50 @@
+{
+  "name": "eventr",
+  "version": "0.1.0",
+  "private": true,
+  "main": "expo-router/entry",
+  "scripts": {
+    "start": "expo start",
+    "web": "expo start --web",
+    "ios": "expo start --ios",
+    "android": "expo start --android",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint . --max-warnings 0",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "verify": "npm run typecheck && npm run lint && npm run format:check && npm run audit:contrast && npm run test:feed && npm run test:format",
+    "prepare": "git config core.hooksPath .githooks || true",
+    "audit:contrast": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --import ./scripts/register-resolver.mjs scripts/contrast-audit.mts",
+    "test:feed": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --import ./scripts/register-resolver.mjs scripts/test-feed.mts",
+    "test:format": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --import ./scripts/register-resolver.mjs scripts/test-format.mts"
+  },
+  "dependencies": {
+    "@expo/metro-runtime": "~57.0.8",
+    "@react-native-async-storage/async-storage": "2.2.0",
+    "@tanstack/react-query": "^5.101.4",
+    "expo": "~57.0.10",
+    "expo-constants": "~57.0.9",
+    "expo-haptics": "~57.0.1",
+    "expo-linking": "~57.0.5",
+    "expo-location": "~57.0.7",
+    "expo-router": "~57.0.10",
+    "expo-status-bar": "~57.0.1",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "react-native": "0.86.2",
+    "react-native-gesture-handler": "~2.32.0",
+    "react-native-reanimated": "4.5.1",
+    "react-native-safe-area-context": "~5.7.0",
+    "react-native-screens": "~4.26.0",
+    "react-native-svg": "15.15.4",
+    "react-native-web": "^0.21.2"
+  },
+  "devDependencies": {
+    "@types/react": "~19.2.2",
+    "eslint": "^9.39.5",
+    "eslint-config-expo": "^57.0.1",
+    "eslint-config-prettier": "^10.1.8",
+    "prettier": "^3.9.6",
+    "typescript": "~6.0.3"
+  }
+}
