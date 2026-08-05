@@ -12,9 +12,10 @@
     "lint": "eslint . --max-warnings 0",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "verify": "npm run typecheck && npm run lint && npm run format:check && npm run audit:contrast",
+    "verify": "npm run typecheck && npm run lint && npm run format:check && npm run audit:contrast && npm run test:feed",
     "prepare": "git config core.hooksPath .githooks || true",
-    "audit:contrast": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/contrast-audit.mts"
+    "audit:contrast": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --import ./scripts/register-resolver.mjs scripts/contrast-audit.mts",
+    "test:feed": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --import ./scripts/register-resolver.mjs scripts/test-feed.mts"
   },
   "dependencies": {
     "@expo/metro-runtime": "~57.0.8",
