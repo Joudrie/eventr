@@ -84,3 +84,30 @@ tonight-only event waits.
 - Address typed in + free geocoder, vs GPS? (Rec: town picker default, GPS optional.)
 - Seeding from public town/library calendars, or 100% user-posted from day one?
 - Do you want the organizer-facing "142 going" view in v1? (Rec: yes, it's the retention hook.)
+
+---
+
+## Round 4 — identity, ads, sourcing (from voice notes)
+
+Full brief in `NEXT-PROMPT.md`.
+
+**Direction:**
+- Palette should read **warm, inviting, friendly** — a nice space, a glimmer of personality, not a
+  paint bucket. Explicitly not the cold single-hue brand look (Twitter blue, Spotify green).
+- Purple + gold is the incumbent, not a decision. Open to replacing it.
+- Minimalist. Trim fat continuously — no profiles, and no features arriving by the back door.
+- Beta, so nothing is charged yet. Build the ad *surface* and labeling now, switch economics on later.
+- Three card types, distinguishable without reading: organic (no border), promoted event (gold
+  edge), paid ad (a third color). Every non-organic card carries a plain `SPONSORED` label.
+- Target roughly 1 ad per 7 cards — but study real ad-density findings first.
+- House-ad slot pointed at the founder's other apps, to see how a real ad unit sits in the scroll.
+- Ingest events from public town/library/civic listings: auto-drafted description, **source cited
+  and attributed**, queued as `pending`, nothing live without manual approval.
+
+**Needs resolving:**
+- **Promoted posts pinned to the top of the feed** contradicts the locked rule that a boost is a
+  bounded lift which never guarantees the top slot — and a passing test in `scripts/test-feed.mts`
+  enforces it. Recommendation: a separated, labeled promoted slot *above* the ranked feed, so the
+  advertiser gets the top of the screen and the ranking stays honest.
+- Do promoted events and paid ads share one frequency budget or stack? Stacking at 1-in-7 each is
+  really 1-in-3.5.
