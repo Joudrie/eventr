@@ -418,17 +418,22 @@ export function EventDetail({ event, now, onClose }: EventDetailProps) {
             ) : null}
           </Animated.View>
         </ScrollView>
-      </Animated.View>
 
-      {mine ? (
-        <BoostSheet
-          visible={boostOpen}
-          onClose={() => setBoostOpen(false)}
-          current={mine.boost}
-          onRequest={(reach) => requestBoost(event.id, reach)}
-          onCancel={() => cancelBoost(event.id)}
-        />
-      ) : null}
+        {/*
+          Inside the root view, not beside it. GestureDetector takes exactly one child,
+          and a second one — even a conditional that renders null — makes it throw at
+          runtime and the whole screen fails to mount.
+        */}
+        {mine ? (
+          <BoostSheet
+            visible={boostOpen}
+            onClose={() => setBoostOpen(false)}
+            current={mine.boost}
+            onRequest={(reach) => requestBoost(event.id, reach)}
+            onCancel={() => cancelBoost(event.id)}
+          />
+        ) : null}
+      </Animated.View>
     </GestureDetector>
   );
 }
