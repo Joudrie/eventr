@@ -103,8 +103,10 @@ export function VerifiedMark({ organizer, placement = 'corner' }: VerifiedMarkPr
 const styles = StyleSheet.create({
   anchor: {
     position: 'absolute',
-    top: 0,
-    right: 0,
+    // Offset by the card's padding, because the mark is painted over the card from
+    // outside it rather than laid out within its content box.
+    top: space.md,
+    right: space.md,
     // Above the card's own content so the popover is not painted under the next row.
     zIndex: 2,
   },

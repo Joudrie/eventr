@@ -67,66 +67,76 @@ export function EventCard({ event, now, onPress, promoted = false }: EventCardPr
   const goingLabel = strings.rsvp.goingCount(event.goingCount);
 
   return (
-    <Card
-      onPress={onPress ? openWithTransition : undefined}
-      muted={noRoom}
-      edge={promoted ? 'promoted' : 'none'}
-      accessibilityLabel={`${promoted ? `${strings.promoted.label}. ` : ''}${event.title}. ${event.summary}. ${shortPrice(event)}. ${timeLabel}. ${distanceLabel} away. ${goingLabel}.${event.verified ? ' Verified organizer.' : ''}`}
-      accessibilityHint="Opens the event"
-    >
-      {promoted ? (
-        <View style={styles.promoted}>
-          <Badge label={strings.promoted.label} tone="promoted" />
-          <Text variant="meta" color="textSecondary" numberOfLines={1} style={styles.promotedWhy}>
-            {strings.promoted.why}
-          </Text>
-        </View>
-      ) : null}
-
-      {/* Absolute, in the card's own corner — see Verified.tsx for why not inline. */}
-      {event.verified ? <VerifiedMark organizer={event.posterName} /> : null}
-
-      <View style={[styles.top, event.verified && styles.topWithMark]}>
-        {event.photoPath ? (
-          <Image
-            source={{ uri: event.photoPath }}
-            style={styles.photo}
-            accessibilityIgnoresInvertColors
-          />
+    /*
+      The verified mark is a sibling of the card, not a child of it.
+      
+      It has to be tappable, and the card itself is pressable — which on web means a
+      <button> inside a <button>. That is invalid HTML, React refuses to hydrate it, and
+      in development Expo's error overlay then covers the page and swallows every click.
+      Overlaying it from outside keeps both controls real without nesting them.
+    */
+    <View style={styles.frame}>
+      <Card
+        onPress={onPress ? openWithTransition : undefined}
+        muted={noRoom}
+        edge={promoted ? 'promoted' : 'none'}
+        accessibilityLabel={`${promoted ? `${strings.promoted.label}. ` : ''}${event.title}. ${event.summary}. ${shortPrice(event)}. ${timeLabel}. ${distanceLabel} away. ${goingLabel}.${event.verified ? ' Verified organizer.' : ''}`}
+        accessibilityHint="Opens the event"
+      >
+        {promoted ? (
+          <View style={styles.promoted}>
+            <Badge label={strings.promoted.label} tone="promoted" />
+            <Text variant="meta" color="textSecondary" numberOfLines={1} style={styles.promotedWhy}>
+              {strings.promoted.why}
+            </Text>
+          </View>
         ) : null}
 
-        <View ref={headlineRef} style={styles.headline}>
-          <Text variant="title" numberOfLines={2}>
-            {event.title}
-          </Text>
-          <Text variant="body" color="textSecondary" numberOfLines={2}>
-            {event.summary}
+        <View style={[styles.top, event.verified && styles.topWithMark]}>
+          {event.photoPath ? (
+            <Image
+              source={{ uri: event.photoPath }}
+              style={styles.photo}
+              accessibilityIgnoresInvertColors
+            />
+          ) : null}
+
+          <View ref={headlineRef} style={styles.headline}>
+            <Text variant="title" numberOfLines={2}>
+              {event.title}
+            </Text>
+            <Text variant="body" color="textSecondary" numberOfLines={2}>
+              {event.summary}
+            </Text>
+          </View>
+
+          <Text variant="displayL" style={styles.price}>
+            {shortPrice(event)}
           </Text>
         </View>
 
-        <Text variant="displayL" style={styles.price}>
-          {shortPrice(event)}
-        </Text>
-      </View>
+        <View style={styles.meta}>
+          {live ? <LiveDot /> : null}
+          <Text variant="meta" color={live ? 'danger' : 'textSecondary'}>
+            {timeLabel}
+          </Text>
+          <Dot />
+          <Text variant="meta" color="textSecondary">
+            {distanceLabel}
+          </Text>
+          <Dot />
+          <Text variant="meta" color="textSecondary">
+            {goingLabel}
+          </Text>
 
-      <View style={styles.meta}>
-        {live ? <LiveDot /> : null}
-        <Text variant="meta" color={live ? 'danger' : 'textSecondary'}>
-          {timeLabel}
-        </Text>
-        <Dot />
-        <Text variant="meta" color="textSecondary">
-          {distanceLabel}
-        </Text>
-        <Dot />
-        <Text variant="meta" color="textSecondary">
-          {goingLabel}
-        </Text>
+          {event.pendingReview ? <Badge label={strings.event.pending} tone="brand" /> : null}
+          <CapacityBadge state={event.capacityState} />
+        </View>
+      </Card>
 
-        {event.pendingReview ? <Badge label={strings.event.pending} tone="brand" /> : null}
-        <CapacityBadge state={event.capacityState} />
-      </View>
-    </Card>
+      {/* Sits in the card's corner, painted over it — see Verified.tsx for placement. */}
+      {event.verified ? <VerifiedMark organizer={event.posterName} /> : null}
+    </View>
   );
 }
 
@@ -157,6 +167,10 @@ function Dot() {
 }
 
 const styles = StyleSheet.create({
+  frame: {
+    // Only an anchor for the verified mark. No visual of its own.
+    position: 'relative',
+  },
   top: {
     flexDirection: 'row',
     gap: space.md,
