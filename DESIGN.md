@@ -116,9 +116,9 @@ not a floating badge sticker.
 
 ### Motion
 
-Fast and few. 120–160ms, ease-out. Things that move: sheets sliding, chips toggling, the Going
-button state. Nothing else. No page transitions, no staggered list fade-ins, no bounce — animated
-entrances are themselves a tell.
+Fast, few, and always functional — motion is feedback, never decoration. No staggered list
+fade-ins, no bounce, no confetti; animated *entrances* are a tell, animated *responses* are what
+cheap apps skip. Full spec in **`INTERACTIONS.md`**.
 
 ### Copy
 
@@ -149,4 +149,6 @@ No phase is complete until every line passes:
 - [ ] Long titles, missing photos, and 2000-char descriptions all render correctly
 - [ ] Every tap target ≥ 44×44
 - [ ] Works at 375px wide and at 200% text size
-- [ ] Nothing on screen animates on entry
+- [ ] Nothing animates on mount without a user action
+- [ ] `INTERACTIONS.md` §9 motion anti-tells: none present
+- [ ] `prefers-reduced-motion` honored
