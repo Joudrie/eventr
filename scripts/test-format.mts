@@ -5,6 +5,7 @@
  * Run: npm run test:format
  */
 
+import { buildICS, escapeICSText, foldICSLine, toICSDate } from '../src/lib/calendar.ts';
 import { formatDistance, shortPrice } from '../src/lib/geo.ts';
 import { formatClock, formatEventTime, isLive } from '../src/lib/time.ts';
 import { searchTowns, nearestTown } from '../src/lib/towns.ts';
@@ -152,6 +153,61 @@ check('town search is case insensitive and trims', () => {
 check('nearest town resolves a coordinate to a real place', () => {
   assertEqual(nearestTown({ latitude: 42.5065, longitude: -71.0723 }).name, 'Wakefield', 'exact');
   assertEqual(nearestTown({ latitude: 42.3601, longitude: -71.0589 }).name, 'Boston', 'downtown');
+});
+
+/* ---------------------------------------------------------------- calendar */
+
+const icsEvent = {
+  id: 'e-wakefield-market',
+  title: 'Wakefield Farmers Market',
+  summary: 'Twenty-two vendors on the common.',
+  description: 'Rain or shine; parking fills by 9:15. Bring bags, cash, and a friend.',
+  venueName: 'Hall Park',
+  addressLine: 'Church St',
+  town: 'Wakefield',
+  startsAt: new Date(Date.UTC(2026, 7, 15, 13, 0, 0)).toISOString(),
+  endsAt: new Date(Date.UTC(2026, 7, 15, 17, 0, 0)).toISOString(),
+};
+
+check('ICS uses UTC basic format', () => {
+  assertEqual(toICSDate(new Date(Date.UTC(2026, 7, 15, 13, 0, 0))), '20260815T130000Z', 'utc');
+  assertEqual(toICSDate(new Date(Date.UTC(2026, 0, 2, 3, 4, 5))), '20260102T030405Z', 'padding');
+});
+
+check('ICS escapes the characters that would truncate a field', () => {
+  assertEqual(escapeICSText('Hall Park, Church St'), 'Hall Park\\, Church St', 'comma');
+  assertEqual(escapeICSText('a;b'), 'a\\;b', 'semicolon');
+  assertEqual(escapeICSText('line\nbreak'), 'line\\nbreak', 'newline');
+  // Backslash must be escaped first or the escapes we add get re-escaped.
+  assertEqual(escapeICSText('back\\slash'), 'back\\\\slash', 'backslash');
+});
+
+check('ICS folds lines at 75 octets with a leading space', () => {
+  const folded = foldICSLine(`DESCRIPTION:${'x'.repeat(200)}`);
+  const lines = folded.split('\r\n');
+  assert(lines.length > 1, 'a 200 character line should fold');
+  assert(lines[0]!.length <= 75, `first line was ${lines[0]!.length} octets`);
+  for (const continuation of lines.slice(1)) {
+    assertEqual(continuation[0], ' ', 'continuations start with a space');
+    assert(continuation.length <= 75, `continuation was ${continuation.length} octets`);
+  }
+});
+
+check('ICS carries the real title, time, and address', () => {
+  const ics = buildICS(icsEvent, new Date(Date.UTC(2026, 7, 1, 0, 0, 0)));
+  assert(ics.includes('BEGIN:VCALENDAR'), 'has a calendar wrapper');
+  assert(ics.includes('SUMMARY:Wakefield Farmers Market'), 'has the title');
+  assert(ics.includes('DTSTART:20260815T130000Z'), 'has the start');
+  assert(ics.includes('DTEND:20260815T170000Z'), 'has the end');
+  assert(ics.includes('LOCATION:Hall Park\\, Church St\\, Wakefield'), 'has an escaped address');
+  assert(ics.includes('UID:e-wakefield-market@eventr.app'), 'has a stable uid');
+  // Some clients reject LF-only files outright.
+  assert(!/[^\r]\n/.test(ics), 'every line break is CRLF');
+});
+
+check('ICS falls back to the summary when there is no description', () => {
+  const ics = buildICS({ ...icsEvent, description: null }, new Date(Date.UTC(2026, 7, 1)));
+  assert(ics.includes('Twenty-two vendors'), 'summary used as description');
 });
 
 /* ------------------------------------------------------------------- report */

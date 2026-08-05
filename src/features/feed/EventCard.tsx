@@ -11,12 +11,14 @@
  * same weight as `$35`, which is the product's whole argument stated typographically.
  */
 
+import { useRef } from 'react';
 import { Image, StyleSheet, View } from 'react-native';
 
 import { strings } from '@/copy/strings';
 import { Badge, Card, LiveDot, Text, VerifiedMark } from '@/design/primitives';
 import { radius, size, space } from '@/design/tokens';
 import { formatDistance, shortPrice } from '@/lib/geo';
+import { setHeroSource } from '@/features/event/heroStore';
 import { formatEventTime, isLive } from '@/lib/time';
 import type { FeedEvent } from '@/types/event';
 
@@ -27,6 +29,27 @@ export type EventCardProps = {
 };
 
 export function EventCard({ event, now, onPress }: EventCardProps) {
+  const headlineRef = useRef<View>(null);
+
+  /**
+   * Measure the headline the instant it is tapped and hand the rect to the detail
+   * screen, which animates its header out of that exact position. Measuring on press
+   * rather than on layout means the rect reflects where the card actually is after
+   * any scrolling, which is the only position that matters.
+   */
+  const openWithTransition = () => {
+    if (!onPress) return;
+    const node = headlineRef.current;
+    if (!node) {
+      onPress();
+      return;
+    }
+    node.measureInWindow((x, y, width, height) => {
+      setHeroSource(event.id, { x, y, width, height });
+      onPress();
+    });
+  };
+
   const startsAt = new Date(event.startsAt);
   const endsAt = new Date(event.endsAt);
   const live = isLive(startsAt, endsAt, now);
@@ -38,7 +61,7 @@ export function EventCard({ event, now, onPress }: EventCardProps) {
 
   return (
     <Card
-      onPress={onPress}
+      onPress={onPress ? openWithTransition : undefined}
       muted={full}
       accessibilityLabel={`${event.title}. ${event.summary}. ${shortPrice(event)}. ${timeLabel}. ${distanceLabel} away. ${goingLabel}.${event.verified ? ' Verified organizer.' : ''}`}
       accessibilityHint="Opens the event"
@@ -52,7 +75,7 @@ export function EventCard({ event, now, onPress }: EventCardProps) {
           />
         ) : null}
 
-        <View style={styles.headline}>
+        <View ref={headlineRef} style={styles.headline}>
           <View style={styles.titleRow}>
             <Text variant="title" numberOfLines={2} style={styles.title}>
               {event.title}

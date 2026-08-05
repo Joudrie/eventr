@@ -12,12 +12,14 @@
  */
 
 import { useRouter } from 'expo-router';
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { StyleSheet, View, type FlatList } from 'react-native';
 import Animated, {
   runOnJS,
+  useAnimatedRef,
   useAnimatedScrollHandler,
   useAnimatedStyle,
+  useScrollViewOffset,
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated';
@@ -42,6 +44,7 @@ import { usePreferences } from '@/lib/preferences';
 import { useEventsQuery } from '@/lib/queries/events';
 import { METERS_PER_MILE, RADIUS_OPTIONS_MI, type FeedEvent, type FeedWindow } from '@/types/event';
 import { EventCard } from './EventCard';
+import { forgetFeedOffset, recallFeedOffset, rememberFeedOffset } from './scrollMemory';
 import { TimeTabs } from './TimeTabs';
 
 /** How far you must overscroll before a release triggers a refresh. */
@@ -61,6 +64,17 @@ export function FeedScreen({ onOpenEvent }: { onOpenEvent?: (event: FeedEvent) =
 
   const [window, setWindow] = useState<FeedWindow>('all');
   const [now, setNow] = useState(() => new Date());
+
+  const listRef = useAnimatedRef<FlatList<FeedEvent>>();
+  /**
+   * The authoritative scroll offset. `useAnimatedScrollHandler` reports a different
+   * number on web than the list actually scrolled — trusting it silently restored
+   * people to the wrong place. `useScrollViewOffset` is the API built for reading a
+   * scroller's position and it agrees with reality on every platform.
+   */
+  const scrollOffset = useScrollViewOffset(listRef);
+  /** Restoration happens once per mount, on the first layout that has content. */
+  const restoredScroll = useRef(false);
 
   useEffect(() => {
     const handle = setInterval(() => setNow(new Date()), CLOCK_TICK_MS);
@@ -136,20 +150,61 @@ export function FeedScreen({ onOpenEvent }: { onOpenEvent?: (event: FeedEvent) =
 
   const handleRelease = useCallback(
     (offsetY: number) => {
+      rememberFeedOffset(offsetY);
       if (-offsetY >= PULL_THRESHOLD) void query.refetch();
     },
     [query],
   );
 
+  /**
+   * Capture the offset at the moment of navigation, read straight off the shared value
+   * the scroll handler already maintains. Recording only at drag end would miss a
+   * programmatic scroll and costs a frame-by-frame `runOnJS` to do properly; reading
+   * once, here, is both cheaper and harder to get wrong.
+   */
+  const openEvent = (event: FeedEvent) => {
+    rememberFeedOffset(scrollOffset.value);
+    onOpenEvent?.(event);
+  };
+
+  /**
+   * Restore on the first content layout rather than on mount: on mount the list has
+   * no measured content yet, so a scroll request would be clamped to zero.
+   */
+  const restoreScroll = () => {
+    if (restoredScroll.current) return;
+    // The first content-size change fires while the query is still pending and the
+    // list is empty. Scrolling then is clamped to zero and, worse, would burn the
+    // one restoration attempt before there was anything to scroll to.
+    if (events.length === 0) return;
+
+    restoredScroll.current = true;
+    const saved = recallFeedOffset();
+    if (saved > 0) listRef.current?.scrollToOffset({ offset: saved, animated: false });
+  };
+
+  /** Any change that replaces the list contents invalidates the remembered offset. */
+  const changeWindow = (next: FeedWindow) => {
+    forgetFeedOffset();
+    restoredScroll.current = true;
+    listRef.current?.scrollToOffset({ offset: 0, animated: false });
+    setWindow(next);
+  };
+
+  const changeRadius = (nextMiles: number) => {
+    forgetFeedOffset();
+    listRef.current?.scrollToOffset({ offset: 0, animated: false });
+    setRadius(nextMiles * METERS_PER_MILE);
+  };
+
   const cycleRadius = () => {
     const index = RADIUS_OPTIONS_MI.indexOf(miles as (typeof RADIUS_OPTIONS_MI)[number]);
-    const next = RADIUS_OPTIONS_MI[(index + 1) % RADIUS_OPTIONS_MI.length] ?? 10;
-    setRadius(next * METERS_PER_MILE);
+    changeRadius(RADIUS_OPTIONS_MI[(index + 1) % RADIUS_OPTIONS_MI.length] ?? 10);
   };
 
   const widen = () => {
     const larger = RADIUS_OPTIONS_MI.find((option) => option > miles);
-    if (larger) setRadius(larger * METERS_PER_MILE);
+    if (larger) changeRadius(larger);
   };
 
   /* ---------------------------------------------------------------- render */
@@ -185,9 +240,9 @@ export function FeedScreen({ onOpenEvent }: { onOpenEvent?: (event: FeedEvent) =
         actions={[
           ...(larger ? [{ label: strings.empty.widen(larger), onPress: widen }] : []),
           ...(window === 'now'
-            ? [{ label: strings.feed.tabs.today, onPress: () => setWindow('today') }]
+            ? [{ label: strings.feed.tabs.today, onPress: () => changeWindow('today') }]
             : window !== 'all'
-              ? [{ label: strings.feed.tabs.all, onPress: () => setWindow('all') }]
+              ? [{ label: strings.feed.tabs.all, onPress: () => changeWindow('all') }]
               : []),
         ]}
       />
@@ -224,7 +279,7 @@ export function FeedScreen({ onOpenEvent }: { onOpenEvent?: (event: FeedEvent) =
         />
       </View>
 
-      <TimeTabs value={window} onChange={setWindow} />
+      <TimeTabs value={window} onChange={changeWindow} />
 
       <View style={[styles.filters, { borderBottomColor: theme.color.border }]}>
         <Chip label={strings.filters.radius(miles)} opensSheet onPress={cycleRadius} />
@@ -233,18 +288,21 @@ export function FeedScreen({ onOpenEvent }: { onOpenEvent?: (event: FeedEvent) =
       </View>
 
       <Animated.FlatList
+        ref={listRef}
         data={events}
         keyExtractor={(item) => (item as FeedEvent).id}
         renderItem={({ item }) => (
           <EventCard
             event={item as FeedEvent}
             now={now}
-            onPress={onOpenEvent ? () => onOpenEvent(item as FeedEvent) : undefined}
+            onPress={onOpenEvent ? () => openEvent(item as FeedEvent) : undefined}
           />
         )}
         onScroll={onScroll}
         scrollEventThrottle={16}
         onScrollEndDrag={(event) => handleRelease(event.nativeEvent.contentOffset.y)}
+        onMomentumScrollEnd={(event) => rememberFeedOffset(event.nativeEvent.contentOffset.y)}
+        onContentSizeChange={restoreScroll}
         // Fetch the next page around 70% scroll depth so the list never visibly loads.
         onEndReachedThreshold={1}
         onEndReached={() => {

@@ -1,9 +1,10 @@
-import { Redirect } from 'expo-router';
+import { Redirect, useRouter } from 'expo-router';
 
 import { FeedScreen } from '@/features/feed/FeedScreen';
 import { usePreferences } from '@/lib/preferences';
 
 export default function Feed() {
+  const router = useRouter();
   const { preferences, ready } = usePreferences();
 
   // Hold the first frame until storage has answered, so someone who already picked a
@@ -11,5 +12,5 @@ export default function Feed() {
   if (!ready) return null;
   if (!preferences.chosen) return <Redirect href="/location" />;
 
-  return <FeedScreen />;
+  return <FeedScreen onOpenEvent={(event) => router.push(`/event/${event.id}`)} />;
 }
