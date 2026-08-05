@@ -134,6 +134,10 @@ export type FeedFilters = {
 };
 
 export const RADIUS_OPTIONS_MI = [1, 5, 10, 25, 50] as const;
+
+/** The slider's range. The presets are shortcuts inside it, not a different scale. */
+export const RADIUS_MIN_MI = 1;
+export const RADIUS_MAX_MI = 50;
 export const METERS_PER_MILE = 1609.344;
 
 export const DEFAULT_FILTERS: Omit<FeedFilters, 'origin'> = {

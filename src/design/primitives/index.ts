@@ -24,3 +24,4 @@ export { Text } from './Text';
 export type { TextColor, TextProps } from './Text';
 export { Toast } from './Toast';
 export type { ToastProps } from './Toast';
+export { Slider } from './Slider';

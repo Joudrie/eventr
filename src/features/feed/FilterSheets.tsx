@@ -9,16 +9,18 @@
 
 import { useMemo } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { useQueries } from '@tanstack/react-query';
+import { useQueries, useQuery } from '@tanstack/react-query';
 
 import { getDataSource } from '@/data';
 import { strings } from '@/copy/strings';
-import { Button, Chip, Icon, Press, Sheet, Text } from '@/design/primitives';
+import { Button, Chip, Icon, Press, Sheet, Slider, Text } from '@/design/primitives';
 import { space } from '@/design/tokens';
 import {
   CATEGORY_LABELS,
   EVENT_CATEGORIES,
   METERS_PER_MILE,
+  RADIUS_MAX_MI,
+  RADIUS_MIN_MI,
   RADIUS_OPTIONS_MI,
   type EventCategory,
   type FeedFilters,
@@ -60,6 +62,23 @@ export function RadiusSheet({
 
   const currentMiles = Math.round(filters.radiusM / METERS_PER_MILE);
 
+  /**
+   * The slider can land anywhere, so its count cannot come from the preset queries.
+   * Same shape, same cache — a value that happens to match a preset costs nothing extra.
+   */
+  const exactCount = useQuery({
+    queryKey: ['events', 'count', { ...filters, radiusM: currentMiles * METERS_PER_MILE }],
+    queryFn: () =>
+      getDataSource().countEvents({
+        ...filters,
+        radiusM: currentMiles * METERS_PER_MILE,
+        limit: 1,
+        offset: 0,
+      }),
+    enabled: visible,
+    staleTime: 60_000,
+  });
+
   return (
     <Sheet visible={visible} onClose={onClose} title="Distance">
       <View style={styles.rows}>
@@ -93,6 +112,32 @@ export function RadiusSheet({
             </Press>
           );
         })}
+      </View>
+
+      {/*
+        The presets cover the common answers; this covers the real one. Somebody who
+        will drive thirty minutes and not forty is not served by a list that jumps from
+        25 to 50, and making them pick the wrong one silently changes what they see.
+      */}
+      <View style={styles.sliderBlock}>
+        <View style={styles.sliderHeading}>
+          <Text variant="label" color="textSecondary">
+            {strings.filters.radiusSlider}
+          </Text>
+          <Text variant="meta" color="textSecondary">
+            {exactCount.data === undefined
+              ? strings.filters.radius(currentMiles)
+              : strings.filters.matchCount(exactCount.data, currentMiles)}
+          </Text>
+        </View>
+        <Slider
+          value={currentMiles}
+          min={RADIUS_MIN_MI}
+          max={RADIUS_MAX_MI}
+          onChange={(miles) => onPick(miles * METERS_PER_MILE)}
+          accessibilityLabel={strings.filters.radiusSlider}
+          formatValue={strings.filters.radiusExact}
+        />
       </View>
     </Sheet>
   );
@@ -193,6 +238,15 @@ export function CategorySheet({
 }
 
 const styles = StyleSheet.create({
+  sliderBlock: {
+    marginTop: space.lg,
+    gap: space.xs,
+  },
+  sliderHeading: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
   rows: {
     paddingBottom: space.sm,
   },

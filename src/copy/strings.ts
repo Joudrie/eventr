@@ -30,6 +30,8 @@ export const strings = {
 
   filters: {
     radius: (miles: number) => `Within ${miles} mi`,
+    radiusSlider: 'Search radius',
+    radiusExact: (miles: number) => (miles === 1 ? 'Within 1 mile' : `Within ${miles} miles`),
     anyPrice: 'Any price',
     freeOnly: 'Free only',
     allCategories: 'All categories',
