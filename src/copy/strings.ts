@@ -66,10 +66,16 @@ export const strings = {
   },
 
   empty: {
-    // Names the constraint that produced the empty result, and offers the fix.
-    noneNearby: (miles: number) => `Nothing within ${miles} miles right now.`,
-    noneToday: (town: string) => `Nothing in ${town} today.`,
-    widen: (miles: number) => `Widen to ${miles} miles`,
+    // Names the constraint that produced the empty result, and offers the fix. The
+    // wording follows the tab you are on: "nothing today" is wrong and slightly
+    // confusing when you are looking at the Now tab.
+    noneNow: (town: string) => `Nothing happening in ${town} right now.`,
+    noneToday: (town: string) => `Nothing left in ${town} today.`,
+    noneWeekend: (town: string) => `Nothing in ${town} this weekend.`,
+    noneNearby: (miles: number) => `Nothing within ${miles} ${miles === 1 ? 'mile' : 'miles'}.`,
+    searchedWithin: (miles: number, town: string) =>
+      `Searched ${miles} ${miles === 1 ? 'mile' : 'miles'} around ${town}.`,
+    widen: (miles: number) => `Widen to ${miles} ${miles === 1 ? 'mile' : 'miles'}`,
     seeWeekend: 'See this weekend',
     clearFilters: 'Clear filters',
     noneSaved: 'Nothing saved yet.',
