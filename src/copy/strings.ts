@@ -58,8 +58,14 @@ export const strings = {
     addToCalendar: 'Add to calendar',
     share: 'Share',
     report: 'Report',
-    full: 'Full',
+    full: 'Nearly full',
     filling: 'Filling up',
+    // A going count is a show of hands, not a ticket sale. Saying "sold out" here would
+    // be a claim the data cannot support, and would turn people away from an event they
+    // could have walked into.
+    over: 'More going than spots',
+    spotsLeft: (n: number) => (n === 1 ? '1 spot left' : `${n} spots left`),
+    capacityOf: (capacity: number) => `Room for ${capacity}`,
     cancelled: 'Cancelled',
     justPosted: 'Just posted',
     pending: 'Pending review',

@@ -40,7 +40,12 @@ export const CATEGORY_LABELS: Record<EventCategory, string> = {
 };
 
 export type PriceTier = 'free' | 'paid';
-export type CapacityState = 'open' | 'filling' | 'full';
+
+/**
+ * Derived from `capacity` and the going count — never set by hand. See `capacityState()`
+ * in `src/lib/capacity.ts` for the thresholds and for why `over` is worded carefully.
+ */
+export type CapacityState = 'open' | 'filling' | 'full' | 'over';
 export type EventStatus = 'pending' | 'live' | 'hidden' | 'cancelled' | 'archived';
 export type RsvpKind = 'going' | 'interested';
 
@@ -77,6 +82,13 @@ export type FeedEvent = {
 
   readonly startsAt: string;
   readonly endsAt: string;
+  /**
+   * How many people fit, when the poster knows. Most events have no meaningful limit —
+   * a farmers market does not fill up — so this is null far more often than not, and a
+   * null capacity can never produce a capacity badge.
+   */
+  readonly capacity: number | null;
+  /** Derived from `capacity` and `goingCount`. Never stored, never hand-set. */
   readonly capacityState: CapacityState;
 
   readonly ticketUrl: string | null;

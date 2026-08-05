@@ -14,7 +14,7 @@
  * Replaced by real listings the moment a Supabase project exists.
  */
 
-import type { CapacityState, EventCategory, PriceTier } from '@/types/event';
+import type { EventCategory, PriceTier } from '@/types/event';
 
 export type SeedPoster = {
   readonly id: string;
@@ -48,7 +48,8 @@ export type SeedEvent = {
   readonly latitude: number;
   readonly longitude: number;
   readonly schedule: SeedSchedule;
-  readonly capacityState?: CapacityState;
+  /** How many fit, when the poster knows. Drives the capacity badge; usually absent. */
+  readonly capacity?: number;
   readonly boosted?: boolean;
   readonly ticketUrl?: string;
   readonly contactEmail?: string;
@@ -181,7 +182,6 @@ export const SEED_EVENTS: readonly SeedEvent[] = [
     latitude: 42.4995,
     longitude: -71.0801,
     schedule: { kind: 'clock', dayOffset: 3, start: '19:00', durationMin: 165 },
-    capacityState: 'filling',
   },
   {
     id: 'e-wakefield-townday',
@@ -277,7 +277,7 @@ export const SEED_EVENTS: readonly SeedEvent[] = [
     latitude: 42.4547,
     longitude: -71.0991,
     schedule: { kind: 'clock', dayOffset: 2, start: '07:30', durationMin: 105 },
-    capacityState: 'full',
+    capacity: 30,
   },
   {
     id: 'e-stoneham-movie',
@@ -408,6 +408,7 @@ export const SEED_EVENTS: readonly SeedEvent[] = [
     latitude: 42.4304,
     longitude: -71.1097,
     schedule: { kind: 'clock', dayOffset: 1, start: '08:00', durationMin: 240 },
+    capacity: 55,
   },
   {
     id: 'e-medford-comedy',
@@ -427,7 +428,6 @@ export const SEED_EVENTS: readonly SeedEvent[] = [
     longitude: -71.0938,
     schedule: { kind: 'clock', dayOffset: 4, start: '20:30', durationMin: 90 },
     ticketUrl: 'https://example.org/medford-standup',
-    capacityState: 'filling',
   },
   {
     id: 'e-tufts-screening',
@@ -538,6 +538,7 @@ export const SEED_EVENTS: readonly SeedEvent[] = [
     latitude: 42.479,
     longitude: -71.023,
     schedule: { kind: 'clock', dayOffset: 2, start: '09:15', durationMin: 165 },
+    capacity: 75,
   },
 
   // ------------------------------------------------------------------ Lynn
@@ -866,7 +867,6 @@ export const SEED_EVENTS: readonly SeedEvent[] = [
     latitude: 42.5027,
     longitude: -71.0714,
     schedule: { kind: 'clock', dayOffset: 11, start: '13:30', durationMin: 180 },
-    capacityState: 'full',
     commentsLocked: true,
   },
   {

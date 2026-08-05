@@ -8,6 +8,7 @@
  * Run: npm run test:feed
  */
 
+import { atCapacity, capacityState, spotsLeft } from '../src/lib/capacity.ts';
 import { queryLocalEvents, weekendRange } from '../src/data/local.ts';
 import { distanceMeters, eventScore } from '../src/data/ranking.ts';
 import { SEED_ORIGIN } from '../src/data/seed/events.ts';
@@ -177,7 +178,7 @@ check('nearest sort is monotonic by distance', () => {
     filters({ sort: 'nearest', radiusM: 50 * METERS_PER_MILE }),
     NOW,
   );
-  const open = nearest.events.filter((e) => e.capacityState !== 'full');
+  const open = nearest.events.filter((e) => !atCapacity(e));
   for (let i = 1; i < open.length; i += 1) {
     assert(
       open[i]!.distanceM >= open[i - 1]!.distanceM,
@@ -191,7 +192,7 @@ check('soonest sort is monotonic by start time', () => {
     filters({ sort: 'soonest', radiusM: 50 * METERS_PER_MILE }),
     NOW,
   );
-  const open = soonest.events.filter((e) => e.capacityState !== 'full');
+  const open = soonest.events.filter((e) => !atCapacity(e));
   for (let i = 1; i < open.length; i += 1) {
     assert(
       Date.parse(open[i]!.startsAt) >= Date.parse(open[i - 1]!.startsAt),
@@ -202,18 +203,18 @@ check('soonest sort is monotonic by start time', () => {
 
 check('ranked sort is monotonic by score', () => {
   const ranked = queryLocalEvents(filters({ sort: 'ranked', radiusM: 50 * METERS_PER_MILE }), NOW);
-  const open = ranked.events.filter((e) => e.capacityState !== 'full');
+  const open = ranked.events.filter((e) => !atCapacity(e));
   for (let i = 1; i < open.length; i += 1) {
     assert(open[i]!.score <= open[i - 1]!.score, `ranked sort went backwards at ${open[i]!.title}`);
   }
 });
 
-check('full events sort below open ones', () => {
+check('events with no room left sort below open ones', () => {
   const ranked = queryLocalEvents(filters({ sort: 'ranked', radiusM: 50 * METERS_PER_MILE }), NOW);
-  const firstFull = ranked.events.findIndex((e) => e.capacityState === 'full');
+  const firstFull = ranked.events.findIndex((e) => atCapacity(e));
   if (firstFull >= 0) {
-    const openAfter = ranked.events.slice(firstFull).filter((e) => e.capacityState !== 'full');
-    assertEqual(openAfter.length, 0, 'an open event sorted below a full one');
+    const openAfter = ranked.events.slice(firstFull).filter((e) => !atCapacity(e));
+    assertEqual(openAfter.length, 0, 'an open event sorted below one with no room');
   }
 });
 
@@ -324,16 +325,63 @@ check('every seed event has a poster and a plausible price shape', () => {
   }
 });
 
-check('a full event never outranks an open one', () => {
+check('an event with no room never outranks an open one', () => {
   const ranked = queryLocalEvents(filters({ radiusM: 50 * METERS_PER_MILE }), NOW);
-  const firstFull = ranked.events.findIndex((e) => e.capacityState === 'full');
+  const firstFull = ranked.events.findIndex((e) => atCapacity(e));
   if (firstFull >= 0) {
-    const openAfter = ranked.events.slice(firstFull).filter((e) => e.capacityState !== 'full');
-    assertEqual(openAfter.length, 0, 'an open event sorted below a full one');
+    const openAfter = ranked.events.slice(firstFull).filter((e) => !atCapacity(e));
+    assertEqual(openAfter.length, 0, 'an open event sorted below one with no room');
   }
 });
 
 /* ------------------------------------------------------------------ report */
+
+/* ------------------------------------------------------------------ capacity */
+
+check('no stated capacity can never produce a capacity badge', () => {
+  // Most events have no meaningful limit. If a missing capacity could produce a badge,
+  // the badge would appear on the whole feed and mean nothing.
+  assertEqual(capacityState(null, 500), 'open', 'null capacity');
+  assertEqual(capacityState(undefined, 500), 'open', 'undefined capacity');
+  assertEqual(capacityState(0, 500), 'open', 'zero capacity');
+  assertEqual(capacityState(-10, 500), 'open', 'negative capacity');
+  assertEqual(spotsLeft(null, 5), null, 'no capacity means no spots figure');
+});
+
+check('the capacity thresholds are where they claim to be', () => {
+  assertEqual(capacityState(100, 69), 'open', '69 of 100 is still just open');
+  assertEqual(capacityState(100, 70), 'filling', '70 of 100 starts filling');
+  assertEqual(capacityState(100, 94), 'filling', '94 of 100 is not yet full');
+  assertEqual(capacityState(100, 95), 'full', '95 of 100 is effectively full');
+  assertEqual(capacityState(100, 100), 'full', 'exactly full is full');
+  assertEqual(capacityState(100, 101), 'over', 'more hands than seats');
+});
+
+check('spots left never goes negative', () => {
+  // An oversubscribed event must not offer "-9 spots left".
+  assertEqual(spotsLeft(50, 59), 0, 'oversubscribed reads as zero left');
+  assertEqual(spotsLeft(50, 20), 30, 'ordinary case');
+});
+
+check('the capacity badge stays rare across the whole feed', () => {
+  const { events } = queryLocalEvents(
+    { ...DEFAULT_FILTERS, origin: SEED_ORIGIN, radiusM: 50 * METERS_PER_MILE, limit: 200 },
+    new Date(),
+  );
+  const withCapacity = events.filter((event) => event.capacity != null);
+  const badged = events.filter((event) => event.capacityState !== 'open');
+
+  assert(withCapacity.length > 0, 'at least one event should state a limit');
+  // A badge on a third of the feed is decoration. This keeps it information.
+  assert(
+    badged.length <= events.length * 0.15,
+    `capacity badges on ${badged.length} of ${events.length} events is too many to mean anything`,
+  );
+  assert(
+    badged.every((event) => event.capacity != null),
+    'a badge appeared on an event with no stated capacity',
+  );
+});
 
 console.log(`feed tests — ${passed} passed, ${failures.length} failed`);
 if (failures.length > 0) {

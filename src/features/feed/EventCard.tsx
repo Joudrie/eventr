@@ -17,10 +17,11 @@ import { Image, StyleSheet, View } from 'react-native';
 import { strings } from '@/copy/strings';
 import { Badge, Card, LiveDot, Text, VerifiedMark } from '@/design/primitives';
 import { radius, size, space } from '@/design/tokens';
+import { atCapacity } from '@/lib/capacity';
 import { formatDistance, shortPrice } from '@/lib/geo';
 import { setHeroSource } from '@/features/event/heroStore';
 import { formatEventTime, isLive } from '@/lib/time';
-import type { FeedEvent } from '@/types/event';
+import type { CapacityState, FeedEvent } from '@/types/event';
 
 export type EventCardProps = {
   event: FeedEvent;
@@ -53,7 +54,7 @@ export function EventCard({ event, now, onPress }: EventCardProps) {
   const startsAt = new Date(event.startsAt);
   const endsAt = new Date(event.endsAt);
   const live = isLive(startsAt, endsAt, now);
-  const full = event.capacityState === 'full';
+  const noRoom = atCapacity(event);
 
   const timeLabel = formatEventTime(startsAt, endsAt, now);
   const distanceLabel = formatDistance(event.distanceM);
@@ -62,7 +63,7 @@ export function EventCard({ event, now, onPress }: EventCardProps) {
   return (
     <Card
       onPress={onPress ? openWithTransition : undefined}
-      muted={full}
+      muted={noRoom}
       accessibilityLabel={`${event.title}. ${event.summary}. ${shortPrice(event)}. ${timeLabel}. ${distanceLabel} away. ${goingLabel}.${event.verified ? ' Verified organizer.' : ''}`}
       accessibilityHint="Opens the event"
     >
@@ -104,10 +105,7 @@ export function EventCard({ event, now, onPress }: EventCardProps) {
         </Text>
 
         {event.pendingReview ? <Badge label={strings.event.pending} tone="brand" /> : null}
-        {full ? <Badge label={strings.event.full} /> : null}
-        {event.capacityState === 'filling' ? (
-          <Badge label={strings.event.filling} tone="accent" />
-        ) : null}
+        <CapacityBadge state={event.capacityState} />
 
         {/*
           Pinned to the right edge of the meta row so it lands in the same place on
@@ -123,6 +121,24 @@ export function EventCard({ event, now, onPress }: EventCardProps) {
       </View>
     </Card>
   );
+}
+
+/**
+ * The one badge that is earned rather than declared: it only appears when a poster
+ * stated a real limit and enough people said they were going to approach it. Three
+ * quarters of the feed has no capacity at all and therefore never shows this.
+ */
+export function CapacityBadge({ state }: { state: CapacityState }) {
+  switch (state) {
+    case 'over':
+      return <Badge label={strings.event.over} tone="accent" />;
+    case 'full':
+      return <Badge label={strings.event.full} />;
+    case 'filling':
+      return <Badge label={strings.event.filling} tone="accent" />;
+    case 'open':
+      return null;
+  }
 }
 
 function Dot() {

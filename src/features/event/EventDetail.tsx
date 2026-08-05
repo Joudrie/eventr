@@ -38,6 +38,8 @@ import {
 } from '@/design/primitives';
 import { useTheme } from '@/design/theme';
 import { border, radius, space } from '@/design/tokens';
+import { spotsLeft } from '@/lib/capacity';
+import { CapacityBadge } from '@/features/feed/EventCard';
 import { formatDistance, shortPrice } from '@/lib/geo';
 import {
   addToCalendar,
@@ -222,11 +224,23 @@ export function EventDetail({ event, now, onClose }: EventDetailProps) {
               <Text variant="meta" color="textSecondary">
                 {formatDistance(event.distanceM)}
               </Text>
-              {event.capacityState === 'full' ? <Badge label={strings.event.full} /> : null}
-              {event.capacityState === 'filling' ? (
-                <Badge label={strings.event.filling} tone="accent" />
-              ) : null}
+              <CapacityBadge state={event.capacityState} />
             </View>
+
+            {/*
+              The card has room for a label; this has room for the arithmetic behind it.
+              Anyone deciding whether to drive over deserves the actual numbers rather
+              than an adjective.
+            */}
+            {event.capacity != null ? (
+              <Text variant="meta" color="textSecondary">
+                {strings.event.capacityOf(event.capacity)}
+                {' · '}
+                {event.capacityState === 'over'
+                  ? strings.rsvp.goingCount(event.goingCount)
+                  : strings.event.spotsLeft(spotsLeft(event.capacity, event.goingCount) ?? 0)}
+              </Text>
+            ) : null}
 
             {event.pendingReview ? (
               <View style={[styles.pending, { borderColor: theme.color.brand }]}>

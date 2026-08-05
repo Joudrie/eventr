@@ -27,6 +27,8 @@ export type DraftEvent = {
   readonly longitude: number;
   readonly startsAt: string;
   readonly endsAt: string;
+  /** Optional headcount limit. Null means no stated limit, which is the common case. */
+  readonly capacity: number | null;
   readonly contactEmail: string;
   readonly createdAt: string;
 };

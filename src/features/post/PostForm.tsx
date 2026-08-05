@@ -80,6 +80,8 @@ export function PostForm({ defaultTown, onSubmit, onCancel }: PostFormProps) {
   const [addressLine, setAddressLine] = useState('');
   const [isFree, setIsFree] = useState(true);
   const [priceLabel, setPriceLabel] = useState('');
+  const [hasLimit, setHasLimit] = useState(false);
+  const [capacity, setCapacity] = useState('');
   const [contactEmail, setContactEmail] = useState('');
   const [errors, setErrors] = useState<Errors>({});
 
@@ -117,6 +119,13 @@ export function PostForm({ defaultTown, onSubmit, onCancel }: PostFormProps) {
 
     const parsedPrice = Number(priceLabel.replace(/[^0-9.]/g, ''));
 
+    // A limit only counts if it is a real positive number. "About 50" and an empty box
+    // both mean the poster does not actually know, and a guessed cap would drive a
+    // "Filling up" badge that nobody earned.
+    const typedCapacity = Number(capacity.replace(/[^0-9]/g, ''));
+    const parsedCapacity =
+      hasLimit && Number.isFinite(typedCapacity) && typedCapacity > 0 ? typedCapacity : null;
+
     onSubmit({
       // Timestamp plus randomness: two posts in the same millisecond is unlikely, but
       // a collision would silently overwrite someone's event.
@@ -136,6 +145,7 @@ export function PostForm({ defaultTown, onSubmit, onCancel }: PostFormProps) {
       longitude: town.longitude,
       startsAt: startsAt.toISOString(),
       endsAt: endsAt.toISOString(),
+      capacity: parsedCapacity,
       contactEmail: contactEmail.trim(),
       createdAt: new Date().toISOString(),
     });
@@ -305,6 +315,25 @@ export function PostForm({ defaultTown, onSubmit, onCancel }: PostFormProps) {
             value={priceLabel}
             onChangeText={setPriceLabel}
             placeholder="$5 general / $20 sideline"
+          />
+        ) : null}
+      </Section>
+
+      <Section
+        label="Room for how many"
+        hint="Optional. Leave it off unless there is a real limit."
+      >
+        <View style={styles.chips}>
+          <Chip label="No limit" selected={!hasLimit} onPress={() => setHasLimit(false)} />
+          <Chip label="There's a limit" selected={hasLimit} onPress={() => setHasLimit(true)} />
+        </View>
+        {hasLimit ? (
+          <Field
+            label="How many fit"
+            value={capacity}
+            onChangeText={setCapacity}
+            placeholder="30"
+            keyboardType="number-pad"
           />
         ) : null}
       </Section>

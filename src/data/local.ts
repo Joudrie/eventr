@@ -9,6 +9,7 @@
  */
 
 import { readMyEvents, type DraftEvent } from '@/lib/myEventsStore';
+import { atCapacity, capacityState } from '@/lib/capacity';
 import { distanceMeters, eventScore } from './ranking';
 import { SEED_EVENTS, SEED_POSTERS, type SeedEvent, type SeedSchedule } from './seed/events';
 import type { DataSource, FeedPage } from './source';
@@ -54,7 +55,7 @@ function seededCounts(seed: SeedEvent): {
   interested: number;
   comments: number;
 } {
-  const ceiling = seed.boosted ? 900 : seed.capacityState === 'open' ? 90 : 220;
+  const ceiling = seed.boosted ? 900 : 90;
   const going = Math.floor(ceiling * hash01(seed.id) ** 2.2) + 3;
   const interested = Math.floor(going * (0.35 + 0.65 * hash01(`${seed.id}:i`)));
   const comments = Math.floor(12 * hash01(`${seed.id}:c`) ** 1.8);
@@ -94,7 +95,8 @@ function toFeedEvent(seed: SeedEvent, origin: Coordinates, radiusM: number, now:
     longitude: seed.longitude,
     startsAt: startsAt.toISOString(),
     endsAt: endsAt.toISOString(),
-    capacityState: seed.capacityState ?? 'open',
+    capacity: seed.capacity ?? null,
+    capacityState: capacityState(seed.capacity, going),
     ticketUrl: seed.ticketUrl ?? null,
     contactUrl: seed.contactUrl ?? null,
     contactEmail: seed.contactEmail ?? null,
@@ -158,7 +160,8 @@ function draftToFeedEvent(
     longitude: draft.longitude,
     startsAt: draft.startsAt,
     endsAt: draft.endsAt,
-    capacityState: 'open',
+    capacity: draft.capacity,
+    capacityState: capacityState(draft.capacity, 0),
     ticketUrl: null,
     contactUrl: null,
     contactEmail: draft.contactEmail.length > 0 ? draft.contactEmail : null,
@@ -275,8 +278,8 @@ export function queryLocalEvents(filters: FeedFilters, now: Date = new Date()): 
     const mine = Number(b.pendingReview ?? false) - Number(a.pendingReview ?? false);
     if (mine !== 0) return mine;
 
-    // Full events stay visible but sort below everything still open.
-    const fullness = Number(a.capacityState === 'full') - Number(b.capacityState === 'full');
+    // Events with no room left stay visible but sort below everything still open.
+    const fullness = Number(atCapacity(a)) - Number(atCapacity(b));
     if (fullness !== 0) return fullness;
 
     switch (filters.sort) {
