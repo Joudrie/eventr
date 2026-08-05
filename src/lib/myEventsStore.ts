@@ -9,6 +9,16 @@
 
 import type { EventCategory, PriceTier } from '@/types/event';
 
+/** Who a boost is aimed at. Priced differently because they cost differently to fill. */
+export type BoostReach = 'town' | 'region';
+
+export type BoostRequest = {
+  readonly reach: BoostReach;
+  readonly requestedAt: string;
+  /** Null until billing exists. Nothing sets this today, and that is the honest state. */
+  readonly paidAt: string | null;
+};
+
 /** What the post form collects. Everything the feed needs, nothing it doesn't. */
 export type DraftEvent = {
   readonly id: string;
@@ -30,6 +40,11 @@ export type DraftEvent = {
   /** Optional headcount limit. Null means no stated limit, which is the common case. */
   readonly capacity: number | null;
   readonly contactEmail: string;
+  /**
+   * A boost the poster asked for. Present means requested, not paid — nothing in this
+   * app takes a payment, and `paidAt` stays null until something outside it does.
+   */
+  readonly boost: BoostRequest | null;
   readonly createdAt: string;
 };
 

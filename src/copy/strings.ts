@@ -72,6 +72,24 @@ export const strings = {
     house: 'From the makers of Eventr',
   },
 
+  boost: {
+    title: 'Boost this event',
+    action: 'Boost',
+    intro: 'Move it to the top of the feed for people nearby. It stays labelled as boosted.',
+    confirm: 'Boost it',
+    update: 'Change reach',
+    cancel: "Don't boost",
+    /**
+     * The whole point of this screen is that it does not lie about what just happened.
+     * Miming a checkout and quietly doing nothing would be worse than having no flow.
+     */
+    noBilling:
+      "Payments aren't set up yet, so nothing is charged and no card is asked for. This records what you want boosted, and it still has to pass review like any other event.",
+    requested: (reach: string) => `Boost requested · ${reach}`,
+    reachTown: 'this town',
+    reachRegion: 'within 50 miles',
+  },
+
   promoted: {
     /**
      * "Boosted", not "Hyped" or "Featured". Paid placement has to be unmistakable: the

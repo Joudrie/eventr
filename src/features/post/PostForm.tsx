@@ -147,6 +147,8 @@ export function PostForm({ defaultTown, onSubmit, onCancel }: PostFormProps) {
       endsAt: endsAt.toISOString(),
       capacity: parsedCapacity,
       contactEmail: contactEmail.trim(),
+      // Boosting happens after an event is live, never at the moment of posting.
+      boost: null,
       createdAt: new Date().toISOString(),
     });
   };

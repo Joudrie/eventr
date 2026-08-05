@@ -52,6 +52,8 @@ import {
 import { formatEventRange, formatEventTime, isLive } from '@/lib/time';
 import type { FeedEvent } from '@/types/event';
 import { RsvpButtons } from '@/features/rsvp/RsvpButtons';
+import { useMyEvents } from '@/lib/myEvents';
+import { BoostSheet } from './BoostSheet';
 import { takeHeroSource, type HeroRect } from './heroStore';
 
 /** Card title is 18px, detail title is 24px — the header enters at that ratio. */
@@ -76,6 +78,12 @@ export function EventDetail({ event, now, onClose }: EventDetailProps) {
   const reducedMotion = useReducedMotion();
 
   const [source] = useState<HeroRect | null>(() => takeHeroSource(event.id));
+  const [boostOpen, setBoostOpen] = useState(false);
+
+  // Boosting is offered only on your own posts. Everything from the feed belongs to
+  // somebody else, and offering to promote a stranger's event would be nonsense.
+  const { myEvents, requestBoost, cancelBoost } = useMyEvents();
+  const mine = myEvents.find((draft) => draft.id === event.id);
 
   /** 0 = sitting on the card, 1 = fully open. Drives every part of the transition. */
   const openness = useSharedValue(source && !reducedMotion ? 0 : 1);
@@ -371,9 +379,37 @@ export function EventDetail({ event, now, onClose }: EventDetailProps) {
               />
               <Button label={strings.event.report} variant="danger" onPress={() => {}} />
             </View>
+
+            {mine ? (
+              <View style={styles.boostBlock}>
+                <Button
+                  label={
+                    mine.boost
+                      ? strings.boost.requested(
+                          mine.boost.reach === 'town'
+                            ? strings.boost.reachTown
+                            : strings.boost.reachRegion,
+                        )
+                      : strings.boost.action
+                  }
+                  variant={mine.boost ? 'secondary' : 'primary'}
+                  onPress={() => setBoostOpen(true)}
+                />
+              </View>
+            ) : null}
           </Animated.View>
         </ScrollView>
       </Animated.View>
+
+      {mine ? (
+        <BoostSheet
+          visible={boostOpen}
+          onClose={() => setBoostOpen(false)}
+          current={mine.boost}
+          onRequest={(reach) => requestBoost(event.id, reach)}
+          onCancel={() => cancelBoost(event.id)}
+        />
+      ) : null}
     </GestureDetector>
   );
 }
@@ -422,6 +458,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flexWrap: 'wrap',
     gap: space.xs,
+    marginTop: space.md,
+  },
+  boostBlock: {
     marginTop: space.md,
   },
   actions: {

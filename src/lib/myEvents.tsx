@@ -27,16 +27,20 @@ import {
   MY_EVENTS_STORAGE_KEY,
   parseMyEvents,
   writeMyEventsMirror,
+  type BoostReach,
   type DraftEvent,
 } from './myEventsStore';
 
-export type { DraftEvent } from './myEventsStore';
+export type { BoostReach, BoostRequest, DraftEvent } from './myEventsStore';
 
 type MyEventsContextValue = {
   readonly myEvents: readonly DraftEvent[];
   readonly ready: boolean;
   addEvent: (event: DraftEvent) => void;
   removeEvent: (id: string) => void;
+  /** Records that the poster wants this boosted. Charges nothing, because it cannot. */
+  requestBoost: (id: string, reach: BoostReach) => void;
+  cancelBoost: (id: string) => void;
 };
 
 const MyEventsContext = createContext<MyEventsContextValue>({
@@ -44,6 +48,8 @@ const MyEventsContext = createContext<MyEventsContextValue>({
   ready: false,
   addEvent: () => {},
   removeEvent: () => {},
+  requestBoost: () => {},
+  cancelBoost: () => {},
 });
 
 export function MyEventsProvider({ children }: { children: ReactNode }) {
@@ -84,6 +90,16 @@ export function MyEventsProvider({ children }: { children: ReactNode }) {
       ready,
       addEvent: (event) => persist([event, ...myEvents]),
       removeEvent: (id) => persist(myEvents.filter((event) => event.id !== id)),
+      requestBoost: (id, reach) =>
+        persist(
+          myEvents.map((event) =>
+            event.id === id
+              ? { ...event, boost: { reach, requestedAt: new Date().toISOString(), paidAt: null } }
+              : event,
+          ),
+        ),
+      cancelBoost: (id) =>
+        persist(myEvents.map((event) => (event.id === id ? { ...event, boost: null } : event))),
     }),
     [myEvents, ready, persist],
   );
