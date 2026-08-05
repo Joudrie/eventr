@@ -9,10 +9,17 @@
  */
 
 import { atCapacity, capacityState, spotsLeft } from '../src/lib/capacity.ts';
+import { AD_INTERVAL, composeFeed } from '../src/features/feed/feedItems.ts';
+import type { Ad } from '../src/data/ads.ts';
 import { queryLocalEvents, weekendRange } from '../src/data/local.ts';
-import { distanceMeters, eventScore } from '../src/data/ranking.ts';
+import { RANKING, distanceMeters, eventScore } from '../src/data/ranking.ts';
 import { SEED_ORIGIN } from '../src/data/seed/events.ts';
-import { DEFAULT_FILTERS, METERS_PER_MILE, type FeedFilters } from '../src/types/event.ts';
+import {
+  DEFAULT_FILTERS,
+  METERS_PER_MILE,
+  type FeedEvent,
+  type FeedFilters,
+} from '../src/types/event.ts';
 
 /* ------------------------------------------------------------ tiny harness */
 
@@ -380,6 +387,94 @@ check('the capacity badge stays rare across the whole feed', () => {
   assert(
     badged.every((event) => event.capacity != null),
     'a badge appeared on an event with no stated capacity',
+  );
+});
+
+/* --------------------------------------------------------- paid placement */
+
+const TEST_AD: Ad = {
+  id: 'test-ad',
+  advertiser: 'Test',
+  headline: 'Headline',
+  body: 'Body',
+  cta: 'Go',
+  url: 'https://example.org',
+  image: null,
+  house: true,
+};
+
+function fakeEvents(count: number, boostedAt = -1): FeedEvent[] {
+  return Array.from({ length: count }, (_, i) => ({
+    ...({} as FeedEvent),
+    id: `e${i}`,
+    boosted: i === boostedAt,
+  }));
+}
+
+check('ads appear once every interval and no more often', () => {
+  const items = composeFeed({ events: fakeEvents(40), ads: [TEST_AD], complete: true });
+  const ads = items.filter((item) => item.kind === 'ad');
+  const events = items.filter((item) => item.kind === 'event');
+
+  assertEqual(events.length, 40, 'every event survives composition');
+  assertEqual(ads.length, Math.floor(40 / AD_INTERVAL), 'one ad per interval, no extras');
+
+  // The gap between ads is what a reader actually experiences. Assert it directly
+  // rather than trusting the count: a bug that clustered two ads together would still
+  // produce the right total.
+  const positions = items.flatMap((item, index) => (item.kind === 'ad' ? [index] : []));
+  for (let i = 1; i < positions.length; i += 1) {
+    assertEqual(positions[i]! - positions[i - 1]!, AD_INTERVAL + 1, 'ads drifted out of step');
+  }
+});
+
+check('a short list still carries exactly one ad, at the bottom', () => {
+  const items = composeFeed({ events: fakeEvents(3), ads: [TEST_AD], complete: true });
+  const ads = items.filter((item) => item.kind === 'ad');
+  assertEqual(ads.length, 1, 'a short result set gets one ad');
+  assertEqual(items[items.length - 1]!.kind, 'ad', 'and it goes below everything asked for');
+});
+
+check('an incomplete list does not get a bottom ad', () => {
+  // Otherwise the end-of-list ad shows on page one and then jumps into the middle of
+  // the feed the moment page two arrives.
+  const items = composeFeed({ events: fakeEvents(3), ads: [TEST_AD], complete: false });
+  assertEqual(items.filter((item) => item.kind === 'ad').length, 0, 'no ad while still loading');
+});
+
+check('an empty result set shows no ad at all', () => {
+  // Nothing is worse than searching, finding nothing, and being sold something.
+  const items = composeFeed({ events: [], ads: [TEST_AD], complete: true });
+  assertEqual(items.length, 0, 'an empty feed stays empty');
+});
+
+check('at most one promoted slot, and it never duplicates the event', () => {
+  const items = composeFeed({ events: fakeEvents(20, 5), ads: [TEST_AD], complete: true });
+  const promoted = items.filter((item) => item.kind === 'promoted');
+  assertEqual(promoted.length, 1, 'exactly one paid slot');
+  assertEqual(items[0]!.kind, 'promoted', 'and it is at the top');
+
+  const ids = items.flatMap((item) => (item.kind === 'ad' ? [] : [item.event.id]));
+  assertEqual(new Set(ids).size, ids.length, 'the boosted event appeared twice');
+  assertEqual(ids.length, 20, 'no event was lost to promotion');
+});
+
+check('a boosted event buys a slot, not a rank', () => {
+  // The organic order must be identical with and without the boost. If promoting an
+  // event also reordered the rest, the paid slot would be laundering a ranking change.
+  const withBoost = composeFeed({ events: fakeEvents(20, 5), ads: [], complete: true });
+  const organic = withBoost.flatMap((item) => (item.kind === 'event' ? [item.event.id] : []));
+  const expected = fakeEvents(20)
+    .map((event) => event.id)
+    .filter((id) => id !== 'e5');
+  assertEqual(organic.join(','), expected.join(','), 'promotion disturbed the organic order');
+});
+
+check('no paid term survives in the ranking function', () => {
+  // The guarantee above is only true while scoring ignores boosting entirely.
+  assert(
+    !Object.keys(RANKING).some((key) => /boost/i.test(key)),
+    'RANKING regained a paid weight — boosting must buy a labelled slot, not a position',
   );
 });
 

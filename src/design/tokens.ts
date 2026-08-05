@@ -39,6 +39,13 @@ export const palette = {
   slate: '#5B5270',
 
   flag: '#B02D26',
+
+  /**
+   * The two paid-placement edges. Both are borders only — the disclosure a reader
+   * relies on is the word on the badge, never the colour. See `edgePromoted` below.
+   */
+  gold: '#C99400',
+  tide: '#1D5FBF',
 } as const;
 
 /* -------------------------------------------------------------------- theme */
@@ -70,6 +77,19 @@ export type Theme = {
     readonly accentPressed: string;
     readonly danger: string;
 
+    /**
+     * Edges that mark paid placement: gold for an event someone paid to lift, blue for
+     * an outright advertisement. Organic cards get neither and keep the hairline.
+     *
+     * These are deliberately *not* the accessible disclosure. A gold that clears 3:1 on
+     * white is no longer gold, and a colour alone cannot tell a colourblind reader that
+     * money changed hands. Every promoted card and every ad carries a text label saying
+     * so; the edge is reinforcement for people who can see it. WCAG 1.4.11 exempts
+     * exactly this case — information conveyed in text elsewhere.
+     */
+    readonly edgePromoted: string;
+    readonly edgeAd: string;
+
     readonly overlay: string;
     readonly skeleton: string;
   };
@@ -95,6 +115,9 @@ export const lightTheme: Theme = {
     accent: palette.sun,
     accentPressed: palette.sunDeep,
     danger: palette.flag,
+
+    edgePromoted: palette.gold,
+    edgeAd: palette.tide,
 
     overlay: 'rgba(25, 20, 40, 0.40)',
     skeleton: palette.lilacDeep,

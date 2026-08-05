@@ -52,7 +52,10 @@ import {
   type FeedWindow,
 } from '@/types/event';
 import { CategorySheet, PriceSheet, RadiusSheet } from './FilterSheets';
+import { availableAds } from '@/data/ads';
+import { AdCard } from './AdCard';
 import { EventCard } from './EventCard';
+import { composeFeed, feedItemKey, type FeedItem } from './feedItems';
 import { forgetFeedOffset, recallFeedOffset, rememberFeedOffset } from './scrollMemory';
 import { TimeTabs } from './TimeTabs';
 
@@ -116,6 +119,15 @@ export function FeedScreen({ onOpenEvent }: { onOpenEvent?: (event: FeedEvent) =
     [query.data],
   );
   const total = query.data?.pages[0]?.total ?? 0;
+
+  /**
+   * Paid placement is applied once, over the whole loaded list, rather than per page —
+   * otherwise the ad cadence would restart at every page boundary and cluster.
+   */
+  const items = useMemo(
+    () => composeFeed({ events, ads: availableAds(), complete: !query.hasNextPage }),
+    [events, query.hasNextPage],
+  );
   const miles = Math.round(metersToMiles(preferences.radiusM));
 
   /* --------------------------------------------------------------- scroll */
@@ -341,15 +353,20 @@ export function FeedScreen({ onOpenEvent }: { onOpenEvent?: (event: FeedEvent) =
 
       <Animated.FlatList
         ref={listRef}
-        data={events}
-        keyExtractor={(item) => (item as FeedEvent).id}
-        renderItem={({ item }) => (
-          <EventCard
-            event={item as FeedEvent}
-            now={now}
-            onPress={onOpenEvent ? () => openEvent(item as FeedEvent) : undefined}
-          />
-        )}
+        data={items}
+        keyExtractor={(item) => feedItemKey(item as FeedItem)}
+        renderItem={({ item }) => {
+          const entry = item as FeedItem;
+          if (entry.kind === 'ad') return <AdCard ad={entry.ad} />;
+          return (
+            <EventCard
+              event={entry.event}
+              now={now}
+              promoted={entry.kind === 'promoted'}
+              onPress={onOpenEvent ? () => openEvent(entry.event) : undefined}
+            />
+          );
+        }}
         onScroll={onScroll}
         scrollEventThrottle={16}
         onScrollEndDrag={(event) => handleRelease(event.nativeEvent.contentOffset.y)}

@@ -10,7 +10,15 @@
 
 import type { Coordinates } from '@/types/event';
 
-/** Weights sum to 1.0 before the boost, which is a bounded lift on top. */
+/**
+ * Weights sum to 1.0. There is no paid term, by design.
+ *
+ * A `boostLift` of 0.15 used to be added here, so a boosted event outranked events that
+ * had earned their position and the reader had no way to tell. That is undisclosed paid
+ * placement: it is what makes a feed feel rigged, and it is what disclosure rules exist
+ * to prevent. Boosting now buys exactly one labelled slot at the top of the feed — see
+ * `src/features/feed/feedItems.ts` — and nothing at all in this function.
+ */
 export const RANKING = {
   proximityWeight: 0.35,
   /** >1 makes proximity fall off sharply toward the radius edge rather than linearly. */
@@ -19,8 +27,6 @@ export const RANKING = {
   tractionWeight: 0.2,
   /** Traction saturates here so a 900-person festival cannot bury a 12-person run club. */
   tractionSaturation: 100,
-  /** Bounded: a boost lifts an event, it never guarantees the top slot. */
-  boostLift: 0.15,
 } as const;
 
 const EARTH_RADIUS_M = 6371008.8;
@@ -70,17 +76,12 @@ export function tractionTerm(goingCount: number): number {
   return RANKING.tractionWeight * Math.min(1, damped);
 }
 
-export function boostTerm(boosted: boolean): number {
-  return boosted ? RANKING.boostLift : 0;
-}
-
 export function eventScore(input: {
   distanceM: number;
   radiusM: number;
   startsAt: Date;
   endsAt: Date;
   goingCount: number;
-  boosted: boolean;
   /** The Now tab ignores traction entirely. */
   useTraction: boolean;
   now: Date;
@@ -88,7 +89,6 @@ export function eventScore(input: {
   return (
     proximityTerm(input.distanceM, input.radiusM) +
     imminenceTerm(input.startsAt, input.endsAt, input.now) +
-    (input.useTraction ? tractionTerm(input.goingCount) : 0) +
-    boostTerm(input.boosted)
+    (input.useTraction ? tractionTerm(input.goingCount) : 0)
   );
 }

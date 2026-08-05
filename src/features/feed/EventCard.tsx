@@ -27,9 +27,15 @@ export type EventCardProps = {
   event: FeedEvent;
   now: Date;
   onPress?: () => void;
+  /**
+   * True only in the feed's single paid slot. An event that is boosted still renders as
+   * an ordinary card everywhere else it appears — the marking belongs to the placement,
+   * not to the event.
+   */
+  promoted?: boolean;
 };
 
-export function EventCard({ event, now, onPress }: EventCardProps) {
+export function EventCard({ event, now, onPress, promoted = false }: EventCardProps) {
   const headlineRef = useRef<View>(null);
 
   /**
@@ -64,10 +70,23 @@ export function EventCard({ event, now, onPress }: EventCardProps) {
     <Card
       onPress={onPress ? openWithTransition : undefined}
       muted={noRoom}
-      accessibilityLabel={`${event.title}. ${event.summary}. ${shortPrice(event)}. ${timeLabel}. ${distanceLabel} away. ${goingLabel}.${event.verified ? ' Verified organizer.' : ''}`}
+      edge={promoted ? 'promoted' : 'none'}
+      accessibilityLabel={`${promoted ? `${strings.promoted.label}. ` : ''}${event.title}. ${event.summary}. ${shortPrice(event)}. ${timeLabel}. ${distanceLabel} away. ${goingLabel}.${event.verified ? ' Verified organizer.' : ''}`}
       accessibilityHint="Opens the event"
     >
-      <View style={styles.top}>
+      {promoted ? (
+        <View style={styles.promoted}>
+          <Badge label={strings.promoted.label} tone="promoted" />
+          <Text variant="meta" color="textSecondary" numberOfLines={1} style={styles.promotedWhy}>
+            {strings.promoted.why}
+          </Text>
+        </View>
+      ) : null}
+
+      {/* Absolute, in the card's own corner — see Verified.tsx for why not inline. */}
+      {event.verified ? <VerifiedMark organizer={event.posterName} /> : null}
+
+      <View style={[styles.top, event.verified && styles.topWithMark]}>
         {event.photoPath ? (
           <Image
             source={{ uri: event.photoPath }}
@@ -106,18 +125,6 @@ export function EventCard({ event, now, onPress }: EventCardProps) {
 
         {event.pendingReview ? <Badge label={strings.event.pending} tone="brand" /> : null}
         <CapacityBadge state={event.capacityState} />
-
-        {/*
-          Pinned to the right edge of the meta row so it lands in the same place on
-          every card. Inline after the title, its position moved with the title's
-          length and jumped again whenever the title wrapped — which made a row of
-          cards look misaligned even though each one was individually correct.
-        */}
-        {event.verified ? (
-          <View style={styles.verified}>
-            <VerifiedMark organizer={event.posterName} />
-          </View>
-        ) : null}
       </View>
     </Card>
   );
@@ -163,10 +170,18 @@ const styles = StyleSheet.create({
     flex: 1,
     gap: space.xs,
   },
-  verified: {
-    // Pushes to the right edge regardless of what precedes it, so the check sits at
-    // one constant x down the whole feed.
-    marginLeft: 'auto',
+  promoted: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: space.sm,
+    marginBottom: space.md,
+  },
+  promotedWhy: {
+    flexShrink: 1,
+  },
+  topWithMark: {
+    // Keeps the price clear of the corner mark rather than letting them overlap.
+    paddingRight: 30,
   },
   price: {
     // Never squeezed by a long title; the title wraps instead.

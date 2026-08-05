@@ -427,6 +427,7 @@ export const SEED_EVENTS: readonly SeedEvent[] = [
     latitude: 42.4127,
     longitude: -71.0938,
     schedule: { kind: 'clock', dayOffset: 4, start: '20:30', durationMin: 90 },
+    boosted: true,
     ticketUrl: 'https://example.org/medford-standup',
   },
   {

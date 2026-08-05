@@ -156,7 +156,8 @@ export default function Gallery() {
           <View style={styles.wrap}>
             <Badge label={strings.event.full} />
             <Badge label={strings.event.filling} tone="accent" />
-            <Badge label={strings.feed.sponsored} tone="brand" />
+            <Badge label={strings.promoted.label} tone="promoted" />
+            <Badge label={strings.ads.label} tone="ad" />
             <Badge label={strings.event.cancelled} tone="danger" />
             <Badge label={strings.event.organizer} tone="brand" />
           </View>

@@ -1,4 +1,5 @@
-export { Badge, LiveDot, VerifiedMark } from './Badge';
+export { Badge, LiveDot } from './Badge';
+export { VerifiedMark } from './Verified';
 export type { BadgeProps, BadgeTone } from './Badge';
 export { Button } from './Button';
 export type { ButtonProps, ButtonSize, ButtonVariant } from './Button';

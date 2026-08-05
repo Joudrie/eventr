@@ -9,7 +9,6 @@ import { StyleSheet, View } from 'react-native';
 
 import { useTheme } from '../theme';
 import { border, radius, size, space } from '../tokens';
-import { Icon } from './Icon';
 import { Text } from './Text';
 import { DURATION } from '../motion';
 import Animated, {
@@ -21,7 +20,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useEffect } from 'react';
 
-export type BadgeTone = 'neutral' | 'brand' | 'accent' | 'danger';
+export type BadgeTone = 'neutral' | 'brand' | 'accent' | 'danger' | 'promoted' | 'ad';
 
 export type BadgeProps = {
   label: string;
@@ -44,6 +43,16 @@ export function Badge({ label, tone = 'neutral' }: BadgeProps) {
       text: 'textOnAccent',
     },
     danger: { background: 'transparent', borderColor: theme.color.danger, text: 'danger' },
+    /**
+     * The two paid-placement labels. Outlined rather than filled: a filled badge reads
+     * as a status the event earned, and these are the opposite of earned.
+     */
+    promoted: {
+      background: 'transparent',
+      borderColor: theme.color.edgePromoted,
+      text: 'textPrimary',
+    },
+    ad: { background: 'transparent', borderColor: theme.color.edgeAd, text: 'textPrimary' },
   } as const;
 
   const chosen = palette[tone];
@@ -58,19 +67,6 @@ export function Badge({ label, tone = 'neutral' }: BadgeProps) {
       <Text variant="label" color={chosen.text}>
         {label}
       </Text>
-    </View>
-  );
-}
-
-/**
- * The verified mark. Inline after a title at text size, per DESIGN.md — not a floating
- * sticker in the card corner like the reference mock, which competes with the title for
- * the eye and looks bolted on.
- */
-export function VerifiedMark({ organizer }: { organizer: string }) {
-  return (
-    <View accessibilityLabel={`${organizer}, verified organizer`} style={styles.verified}>
-      <Icon name="check" size={14} color="brand" />
     </View>
   );
 }

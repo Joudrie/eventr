@@ -207,7 +207,9 @@ export function EventDetail({ event, now, onClose }: EventDetailProps) {
               <Text variant="displayL" style={styles.title}>
                 {event.title}
               </Text>
-              {event.verified ? <VerifiedMark organizer={event.posterName} /> : null}
+              {event.verified ? (
+                <VerifiedMark organizer={event.posterName} placement="inline" />
+              ) : null}
             </View>
             <Text variant="displayXl">{shortPrice(event)}</Text>
           </Animated.View>
@@ -307,7 +309,9 @@ export function EventDetail({ event, now, onClose }: EventDetailProps) {
             <Section title="Posted by">
               <View style={styles.titleRow}>
                 <Text variant="body">{event.posterName}</Text>
-                {event.verified ? <VerifiedMark organizer={event.posterName} /> : null}
+                {event.verified ? (
+                  <VerifiedMark organizer={event.posterName} placement="inline" />
+                ) : null}
               </View>
             </Section>
 

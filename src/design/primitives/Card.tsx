@@ -19,6 +19,12 @@ export type CardProps = {
   onLongPress?: () => void;
   /** Dims the card and drops it down-sort — used for `full` events, which stay visible. */
   muted?: boolean;
+  /**
+   * Paid-placement marking. `promoted` is an event someone paid to lift, `ad` is an
+   * outright advertisement. Organic cards pass nothing and keep the hairline, which is
+   * the point: the default costs nobody anything and looks like it.
+   */
+  edge?: 'none' | 'promoted' | 'ad';
   style?: StyleProp<ViewStyle>;
   accessibilityLabel?: string;
   accessibilityHint?: string;
@@ -29,17 +35,27 @@ export function Card({
   onPress,
   onLongPress,
   muted = false,
+  edge = 'none',
   style,
   accessibilityLabel,
   accessibilityHint,
 }: CardProps) {
   const theme = useTheme();
 
+  const edgeColor =
+    edge === 'promoted'
+      ? theme.color.edgePromoted
+      : edge === 'ad'
+        ? theme.color.edgeAd
+        : theme.color.border;
+
   const surface = [
     styles.card,
     {
       backgroundColor: theme.color.surface,
-      borderColor: theme.color.border,
+      borderColor: edgeColor,
+      // A paid edge has to survive being glanced at; the hairline is structural only.
+      borderWidth: edge === 'none' ? border.hairline : border.strong,
       opacity: muted ? 0.6 : 1,
     },
     style,

@@ -25,7 +25,6 @@ export const strings = {
       all: 'All',
     },
     live: 'Happening now',
-    sponsored: 'Sponsored',
     endOfList: "That's everything nearby.",
   },
 
@@ -50,6 +49,36 @@ export const strings = {
     interestedActive: 'Saved',
     goingCount: (count: number) => `${count} going`,
     interestedCount: (count: number) => `${count} interested`,
+  },
+
+  verified: {
+    label: (organizer: string) => `${organizer}, verified organiser`,
+    hint: 'Explains what verified means here',
+    /**
+     * Says what was actually checked, not just that something was. A mark whose meaning
+     * nobody can find out is decoration — it certifies nothing because no one knows what
+     * it certifies.
+     */
+    explainer: (organizer: string) =>
+      `${organizer} is a verified organiser. A person confirmed they run this venue or group before this went out.`,
+  },
+
+  ads: {
+    // "Ad", not "Sponsored content" or "Partner" — the shortest true word, because the
+    // point of a disclosure is that nobody has to work out what it means.
+    label: 'Ad',
+    house: 'From the makers of Eventr',
+  },
+
+  promoted: {
+    /**
+     * "Boosted", not "Hyped" or "Featured". Paid placement has to be unmistakable: the
+     * FTC treats a label a reader could take as organic popularity as no label at all,
+     * and "hyped" describes enthusiasm rather than payment. "Boosted" is the plainest
+     * word for someone put money behind this, and reads community rather than corporate.
+     */
+    label: 'Boosted',
+    why: 'Someone paid to move this up. It still had to pass review like everything else.',
   },
 
   event: {

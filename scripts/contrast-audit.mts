@@ -102,6 +102,11 @@ function pairsFor(theme: Theme): Pair[] {
       bg: c.accentPressed,
       weight: 'normal',
     },
+    // Paid-placement edges. Decorative by 1.4.11: the badge text is the disclosure a
+    // reader acts on, and a gold that clears 3:1 on white is not gold any more.
+    { label: 'edgePromoted on surface', fg: c.edgePromoted, bg: c.surface, weight: 'decorative' },
+    { label: 'edgeAd on surface', fg: c.edgeAd, bg: c.surface, weight: 'decorative' },
+    { label: 'edgeAd text on surface', fg: c.edgeAd, bg: c.surface, weight: 'normal' },
     { label: 'border on surface', fg: c.border, bg: c.surface, weight: 'decorative' },
     { label: 'border on page', fg: c.border, bg: c.page, weight: 'decorative' },
     { label: 'borderStrong on surface', fg: c.borderStrong, bg: c.surface, weight: 'large' },

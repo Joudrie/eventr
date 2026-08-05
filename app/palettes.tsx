@@ -107,7 +107,7 @@ function CandidateBlock({
           <Chip label="Within 10 mi" opensSheet />
           <Chip label="Free" selected />
           <Badge label="Filling up" tone="accent" />
-          <Badge label="Sponsored" tone="brand" />
+          <Badge label="Boosted" tone="promoted" />
         </View>
 
         <View style={styles.cards}>
