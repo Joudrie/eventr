@@ -9,12 +9,14 @@ Meanwhile your town had a farmers market, a free concert, and a 5K, and nobody t
 Eventr is a radius-scoped feed of everything happening near you — free events first, no account
 to browse, no tickets sold, ever.
 
-**Status:** pre-build. Specs are complete; no code yet.
+**Status:** pre-build. Specs are complete; no code yet. Build order lives in
+[`BUILD-PLAN.md`](BUILD-PLAN.md).
 
 ## Docs
 
 | | |
 |---|---|
+| [`BUILD-PLAN.md`](BUILD-PLAN.md) | **Start here.** Order of operations, phase gates, definition of done, master prompt |
 | [`PRODUCT.md`](PRODUCT.md) | What it is, who it's for, how it makes money, compliance posture |
 | [`BLUEPRINT.md`](BLUEPRINT.md) | Stack, data model, screens, ranking, build phases |
 | [`DESIGN.md`](DESIGN.md) | Design tokens, and the specific tells that make apps look generated |
