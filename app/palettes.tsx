@@ -69,10 +69,13 @@ export default function Palettes() {
       </View>
 
       {PALETTE_CANDIDATES.map((candidate) => (
-        <View key={candidate.key}>
-          <CandidateBlock candidate={candidate} theme={candidate.light} events={sample} now={now} />
-          <CandidateBlock candidate={candidate} theme={candidate.dark} events={sample} now={now} />
-        </View>
+        <CandidateBlock
+          key={candidate.key}
+          candidate={candidate}
+          theme={candidate.light}
+          events={sample}
+          now={now}
+        />
       ))}
     </ScrollView>
   );
@@ -93,9 +96,7 @@ function CandidateBlock({
     <ThemeOverride theme={theme}>
       <View style={[styles.block, { backgroundColor: theme.color.page }]}>
         <View style={styles.heading}>
-          <Text variant="title">
-            {candidate.name} · {theme.scheme}
-          </Text>
+          <Text variant="title">{candidate.name}</Text>
           <Text variant="meta" color="textSecondary">
             {candidate.tagline}
           </Text>
@@ -111,11 +112,7 @@ function CandidateBlock({
 
         <View style={styles.cards}>
           {events.map((event) => (
-            <EventCard
-              key={`${candidate.key}-${theme.scheme}-${event.id}`}
-              event={event}
-              now={now}
-            />
+            <EventCard key={`${candidate.key}-${event.id}`} event={event} now={now} />
           ))}
         </View>
       </View>

@@ -34,7 +34,8 @@ export default function RootLayout() {
             <PreferencesProvider>
               <MyEventsProvider>
                 <RsvpProvider>
-                  <StatusBar style="auto" />
+                  {/* Dark glyphs, always — the app is light regardless of the OS setting. */}
+                  <StatusBar style="dark" />
                   <Stack screenOptions={{ headerShown: false }}>
                     <Stack.Screen name="index" />
                     <Stack.Screen name="location" />

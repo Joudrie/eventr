@@ -6,12 +6,12 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "scheme": "eventr",
-    "userInterfaceStyle": "automatic",
+    "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#F4F2ED"
+      "backgroundColor": "#F2EDFB"
     },
     "ios": {
       "supportsTablet": false,
@@ -35,6 +35,7 @@
     "experiments": {
       "typedRoutes": true,
       "baseUrl": "/eventr"
-    }
+    },
+    "backgroundColor": "#F2EDFB"
   }
 }

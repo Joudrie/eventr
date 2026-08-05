@@ -9,7 +9,7 @@
  */
 
 import { PALETTE_CANDIDATES } from '../src/design/palettes.ts';
-import { darkTheme, lightTheme, type Theme } from '../src/design/tokens.ts';
+import { lightTheme, type Theme } from '../src/design/tokens.ts';
 
 const AA_NORMAL = 4.5;
 const AA_LARGE = 3.0;
@@ -120,15 +120,14 @@ const rows: string[] = [];
  */
 const auditTargets: [string, Theme][] = [
   ['CURRENT', lightTheme],
-  ['CURRENT', darkTheme],
-  ...PALETTE_CANDIDATES.flatMap((candidate): [string, Theme][] => [
-    [candidate.name.toUpperCase(), candidate.light],
-    [candidate.name.toUpperCase(), candidate.dark],
+  ...PALETTE_CANDIDATES.map((candidate): [string, Theme] => [
+    candidate.name.toUpperCase(),
+    candidate.light,
   ]),
 ];
 
 for (const [label, theme] of auditTargets) {
-  rows.push(`\n  ${label} · ${theme.scheme}`);
+  rows.push(`\n  ${label}`);
   for (const pair of pairsFor(theme)) {
     const value = ratio(pair.fg, pair.bg);
 

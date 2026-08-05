@@ -9,7 +9,11 @@
 
 /**
  * Raw palette. Never referenced directly by components — components consume the
- * semantic `theme` below, so dark mode and future retheming stay a one-file change.
+ * semantic `theme` below, so retheming stays a one-file change.
+ *
+ * There is one scheme. A dark ramp existed through Phase 4 and was removed: the dark
+ * purple surface read as a generated default rather than a decision, which is the exact
+ * impression this project is built to avoid. Light is the design, not the fallback.
  */
 export const palette = {
   ink: '#191428',
@@ -27,23 +31,14 @@ export const palette = {
   /** Deeper members of the same family, because these have to clear 4.5:1 as text. */
   grape: '#6035B8',
   grapeDeep: '#42217F',
-  grapeLight: '#C4AAF5',
-  /** Dark-mode pressed state. Stays light so `ink` remains legible on it. */
-  grapeMid: '#A98BE8',
 
   /** Accent only, and only ever as a fill behind `ink`. Never text on white. */
   sun: '#FFDE7A',
   sunDeep: '#E5BE45',
 
   slate: '#5B5270',
-  slateLight: '#A79CC2',
 
   flag: '#B02D26',
-  flagLight: '#EE7268',
-
-  night: '#141020',
-  nightSurface: '#1E1830',
-  nightRaised: '#28203D',
 } as const;
 
 /* -------------------------------------------------------------------- theme */
@@ -55,7 +50,6 @@ export const palette = {
  * 1.56:1 on white. It is legible only as a fill behind `ink`, or as type on `ink`.
  */
 export type Theme = {
-  readonly scheme: 'light' | 'dark';
   readonly color: {
     readonly page: string;
     readonly surface: string;
@@ -82,7 +76,6 @@ export type Theme = {
 };
 
 export const lightTheme: Theme = {
-  scheme: 'light',
   color: {
     page: palette.lilac,
     surface: palette.paper,
@@ -105,38 +98,6 @@ export const lightTheme: Theme = {
 
     overlay: 'rgba(25, 20, 40, 0.40)',
     skeleton: palette.lilacDeep,
-  },
-};
-
-export const darkTheme: Theme = {
-  scheme: 'dark',
-  color: {
-    page: palette.night,
-    surface: palette.nightSurface,
-    surfaceRaised: palette.nightRaised,
-    surfaceSunken: palette.night,
-
-    textPrimary: '#EFEAFA',
-    textSecondary: palette.slateLight,
-    /**
-     * Ink, not paper. The dark-scheme brand is a *light* purple, so white-on-brand
-     * measures 2.98:1 — the contrast audit catches this if it ever regresses.
-     */
-    textOnBrand: palette.ink,
-    textOnAccent: palette.ink,
-
-    border: 'rgba(239, 234, 250, 0.14)',
-    borderStrong: 'rgba(239, 234, 250, 0.38)',
-
-    brand: palette.grapeLight,
-    /** Deeper, but still light — a pressed state that inverts lightness breaks its label. */
-    brandPressed: palette.grapeMid,
-    accent: palette.sun,
-    accentPressed: palette.sunDeep,
-    danger: palette.flagLight,
-
-    overlay: 'rgba(0, 0, 0, 0.60)',
-    skeleton: palette.nightRaised,
   },
 };
 

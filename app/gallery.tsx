@@ -78,7 +78,7 @@ export default function Gallery() {
           Primitives
         </Text>
 
-        <Section title={`Type · ${theme.scheme}`}>
+        <Section title="Type">
           <Text variant="displayXl">Display XL {typeScale.displayXl.fontSize}</Text>
           <Text variant="displayL">Display L {typeScale.displayL.fontSize}</Text>
           <Text variant="title">Title {typeScale.title.fontSize}</Text>
