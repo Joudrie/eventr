@@ -44,21 +44,37 @@ about: first run, feed density, the Now tab, the empty state's wording, filters 
 surviving a town change, Going/Interested including rapid taps and persistence, posting with tags,
 date validation, scroll restoration, deep links, and page metadata.
 
-Run with `npm run test:e2e`. Playwright starts the dev server itself.
+The suite runs against **two targets**, because they are two different code paths:
 
-Two of them encode mistakes that already happened once: the empty state asserts *"Searched 1 mile"*
+| Command | Server | What it proves |
+|---|---|---|
+| `npm run test:e2e` | Metro dev server | Fast feedback while working |
+| `npm run test:e2e:export` | The static export, served the way Pages serves it | That what ships works |
+
+The export renders every route at build time and then hydrates. The empty `<title>` shipped for
+days because nothing ever loaded a built page and looked at it. `scripts/serve-export.mjs`
+reproduces Pages' behaviour — the `/eventr` base path, `.html` resolution, and `404.html` for
+unmatched paths — so a deep link to a nonexistent event is exercised the same way a real one is.
+Both targets currently pass all 21.
+
+Two tests encode mistakes that already happened once: the empty state asserts *"Searched 1 mile"*
 singular, and the scroll-restoration test only taps cards already on screen, because tapping an
 off-screen one makes Playwright scroll the feed and then blame the app.
 
 ### 3. ~~Nothing runs on push~~ — **closed**
 
-`.github/workflows/ci.yml` runs three jobs on every push and pull request: `verify` (typecheck,
-lint, format, contrast audit, 47 unit tests), the E2E suite, and a production web build that
-asserts the export actually produced per-event pages with real titles.
+`.github/workflows/ci.yml` runs on every push and pull request: `verify` (typecheck, lint, format,
+contrast audit, 47 unit tests), the E2E suite against **both** targets as a matrix, and a
+production web build that asserts the export produced per-event pages with real titles plus the two
+files Pages needs (`.nojekyll`, `404.html`).
 
-That last job matters because the static export is a different code path from the dev server, and
-has hidden real bugs before — the empty `<title>` shipped for days precisely because nothing built
-and inspected the export.
+`.github/workflows/deploy-pages.yml` publishes to the `gh-pages` branch. It does *not* use
+`actions/deploy-pages`: this repository's Pages source is a branch, and GitHub pins the
+`github-pages` environment to that branch alone, so every deploy from `main` was rejected before
+the job could start — with no steps and no logs, which reads as an outage rather than a settings
+mismatch. Switching the repository's Pages source to "GitHub Actions" would allow the standard
+artifact flow instead. All three workflows build via `npm run build:web`, so what is published is
+what was tested.
 
 ### 4. Nothing verified on a real device
 

@@ -1,7 +1,5 @@
 import { defineConfig, devices } from '@playwright/test';
 
-const PORT = 8123;
-
 /**
  * End-to-end tests against the real app.
  *
@@ -12,7 +10,18 @@ const PORT = 8123;
  * months later.
  *
  * The viewport is 375×667 because that is the size the design is held to.
+ *
+ * Two targets, because they are two different code paths:
+ *
+ *   npm run test:e2e          the Metro dev server — fast, what you use while working
+ *   npm run test:e2e:export   the static export, served the way GitHub Pages serves it
+ *
+ * The export renders every route at build time and then hydrates, so it can break in
+ * ways the dev server never shows. The empty `<title>` shipped for days because
+ * nothing ever loaded a built page and looked at it. Both targets run in CI.
  */
+const EXPORT = process.env.E2E_TARGET === 'export';
+const PORT = EXPORT ? 8124 : 8123;
 export default defineConfig({
   testDir: './e2e',
   // The app is stateful across a test (storage, navigation), so files run in
@@ -45,11 +54,16 @@ export default defineConfig({
   projects: [{ name: 'chromium', use: { browserName: 'chromium' } }],
 
   webServer: {
-    command: `npx expo start --web --port ${PORT}`,
+    // The export target builds first, so `test:e2e:export` is one command rather
+    // than a build you can forget to re-run against stale bytes in dist/.
+    command: EXPORT
+      ? `npm run build:web && node scripts/serve-export.mjs ${PORT}`
+      : `npx expo start --web --port ${PORT}`,
     url: `http://localhost:${PORT}`,
     reuseExistingServer: !process.env.CI,
-    // Metro bundles on first request; a cold start is genuinely slow.
-    timeout: 240_000,
+    // Metro bundles on first request, and a full export is slower still; a cold
+    // start is genuinely slow.
+    timeout: 420_000,
     stdout: 'ignore',
     stderr: 'pipe',
   },

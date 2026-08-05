@@ -29,8 +29,16 @@ jobs:
       - run: npm run verify
 
   e2e:
-    name: End-to-end
+    name: End-to-end (${{ matrix.target }})
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # Two genuinely different code paths. `dev` is the Metro server. `export`
+        # is the static build, rendered at build time and then hydrated, served the
+        # way Pages serves it — that is what actually ships, and it has broken on
+        # its own before while the dev server stayed fine.
+        target: [dev, export]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -40,12 +48,12 @@ jobs:
       - run: npm ci
       # Chromium only — the suite exercises app behavior, not browser differences.
       - run: npx playwright install --with-deps chromium
-      # Playwright starts the Expo dev server itself; see playwright.config.ts.
-      - run: npm run test:e2e
+      # Playwright starts the server itself, dev or export; see playwright.config.ts.
+      - run: npm run test:e2e${{ matrix.target == 'export' && ':export' || '' }}
       - if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-report
+          name: playwright-report-${{ matrix.target }}
           path: playwright-report/
           retention-days: 7
 
@@ -59,13 +67,16 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      # Catches anything that only breaks in a production bundle — the static export
-      # is a different code path from the dev server, and has hidden real bugs before.
-      - run: npx expo export --platform web
+      # The same script the deploy workflow runs, so a passing build here means the
+      # deploy will produce the same bytes.
+      - run: npm run build:web
       - name: Check the export produced real pages
         run: |
           test -f dist/index.html
           test -f dist/event/e-wakefield-market.html
           # .nojekyll matters: without it Pages deletes the whole _expo bundle directory.
+          test -f dist/.nojekyll
+          # 404.html is what lets the router resolve unknown deep links client-side.
+          test -f dist/404.html
           grep -q "Eventr" dist/index.html
           grep -q "Wakefield Farmers Market" dist/event/e-wakefield-market.html

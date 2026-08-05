@@ -37,19 +37,20 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: npx expo export --platform web
 
-      # Jekyll drops directories beginning with an underscore, which would remove
-      # the entire _expo bundle directory.
-      - run: touch dist/.nojekyll
-      # Pages serves 404.html for unmatched paths; booting the app there lets the
-      # router resolve deep links such as /eventr/event/<id> client-side.
-      - run: cp dist/index.html dist/404.html
+      # One script, shared with CI and with the local export test run, so what gets
+      # published is the same thing that got tested. It exports, then adds two files
+      # Pages needs: .nojekyll, or Jekyll drops the whole _expo bundle directory
+      # because its name begins with an underscore; and 404.html, which Pages serves
+      # for unmatched paths so the router can resolve deep links client-side.
+      - run: npm run build:web
 
       - name: Check the export produced real pages
         run: |
           test -f dist/index.html
           test -f dist/event/e-wakefield-market.html
+          test -f dist/.nojekyll
+          test -f dist/404.html
           grep -q "Eventr" dist/index.html
           grep -q "Wakefield Farmers Market" dist/event/e-wakefield-market.html
 

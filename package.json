@@ -17,7 +17,10 @@
     "audit:contrast": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --import ./scripts/register-resolver.mjs scripts/contrast-audit.mts",
     "test:feed": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --import ./scripts/register-resolver.mjs scripts/test-feed.mts",
     "test:format": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --import ./scripts/register-resolver.mjs scripts/test-format.mts",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "test:e2e:export": "E2E_TARGET=export playwright test",
+    "build:web": "expo export --platform web && touch dist/.nojekyll && cp dist/index.html dist/404.html",
+    "serve:export": "node scripts/serve-export.mjs"
   },
   "dependencies": {
     "@expo/metro-runtime": "~57.0.8",
