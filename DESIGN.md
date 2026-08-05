@@ -78,7 +78,7 @@ bone       #F4F2ED   page background. warm, not blue-grey.
 grape      #6B2FD6   brand purple. headers, active states, the wordmark.
 grape-deep #3E1A80   pressed states, dark surfaces
 sun        #FFC72C   accent only. prices, verified state, the post button.
-slate      #6A6675   secondary text. the only grey.
+slate      #5F5B6B   secondary text. the only grey.
 flag       #C4342B   destructive, cancelled, report
 ```
 
