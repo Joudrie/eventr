@@ -1,4 +1,18 @@
 # Builds the Expo web export and publishes it to GitHub Pages on every push to main.
+#
+# Publishing is a push to the `gh-pages` branch rather than `actions/deploy-pages`,
+# because this repository's Pages source is a branch. When Pages is branch-sourced,
+# GitHub pins the `github-pages` environment to that branch alone, and any deployment
+# from `main` is rejected before the job starts:
+#
+#   Branch "main" is not allowed to deploy to github-pages due to environment
+#   protection rules.
+#
+# That failure has no steps and no logs, which makes it look like an outage rather
+# than a settings mismatch. Pushing the build output to the branch Pages already
+# serves sidesteps the environment entirely. Switching the repository's Pages source
+# to "GitHub Actions" would also fix it, and would let this go back to
+# upload-pages-artifact — but that is a settings change, and this is not.
 name: Deploy web to Pages
 
 on:
@@ -7,16 +21,14 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
-  pages: write
-  id-token: write
+  contents: write
 
 concurrency:
   group: pages
   cancel-in-progress: true
 
 jobs:
-  build:
+  deploy:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -26,22 +38,32 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npx expo export --platform web
+
       # Jekyll drops directories beginning with an underscore, which would remove
       # the entire _expo bundle directory.
       - run: touch dist/.nojekyll
       # Pages serves 404.html for unmatched paths; booting the app there lets the
       # router resolve deep links such as /eventr/event/<id> client-side.
       - run: cp dist/index.html dist/404.html
-      - uses: actions/upload-pages-artifact@v3
-        with:
-          path: dist
 
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - id: deployment
-        uses: actions/deploy-pages@v4
+      - name: Check the export produced real pages
+        run: |
+          test -f dist/index.html
+          test -f dist/event/e-wakefield-market.html
+          grep -q "Eventr" dist/index.html
+          grep -q "Wakefield Farmers Market" dist/event/e-wakefield-market.html
+
+      - name: Publish to gh-pages
+        working-directory: dist
+        run: |
+          git init -q -b gh-pages
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -q -m "Publish ${GITHUB_SHA::8}"
+          # A single forced commit, not appended history. Bundle filenames carry a
+          # content hash, so every build would otherwise add a full copy of the app
+          # and the branch would grow without bound.
+          git push -q --force \
+            "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${GITHUB_REPOSITORY}.git" \
+            gh-pages
