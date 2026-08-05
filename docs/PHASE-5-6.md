@@ -64,11 +64,11 @@ and web each honour a different one) while the strip carries the real value as i
 Verified against the DOM rather than assumed: the counts now expose `aria-label="213"` and
 `aria-label="192"`, with the digit columns marked hidden.
 
-**Known limitation, not yet fixed:** the clipped digits are still present in the rendered text, so
-`innerText` and any crawler still sees `0123456789` per place. That is cosmetic for users and real
-for SEO on statically rendered event pages. The fix is to render a plain number until the value
-first changes, so pre-rendered output stays clean — worth doing before launch, not worth blocking
-this on.
+**Correction to an earlier claim in this document.** I wrote that the clipped digits leak into
+statically rendered event pages and hurt SEO. That was wrong, and checking rather than assuming is
+what showed it: during static rendering the detail body never renders at all (the query is still
+pending), so the generated HTML contains no odometer and no digit noise. The leak is confined to
+the live DOM, where the columns are already hidden from assistive tech. Nothing to fix.
 
 ## Filters compose
 
@@ -105,3 +105,65 @@ different set of results would drop you somewhere arbitrary.
 
 Nothing in the feed or detail view, now. The remaining unbuilt surfaces are posting, comments, and
 the ad slots — phases 7, 8, and 10, plus workstreams 2 and 3 of `NEXT-PROMPT.md`.
+
+---
+
+## Polish pass
+
+Bugs found by driving the app rather than reading it.
+
+### 1. Every page shipped with an empty `<title>`
+
+The deployed site served `<title data-rh="true"></title>` and no description or Open Graph tags.
+A link texted to a friend rendered as a blank tab and a preview-less grey box — which is most of
+what decides whether the friend taps it.
+
+The cause was not a missing component but a **placement bug**: `Seo` sat below the early returns in
+`app/index.tsx`. During static rendering the storage read never resolves, so `ready` stays false,
+the component returns before reaching `Seo`, and nothing reaches the generated HTML. Hoisted above
+the gates, and the metadata appears.
+
+### 2. Event pages were one shared template
+
+`/event/<id>` resolved to a single `[id].html`, so every event had the same (empty) title, and deep
+links returned a 404 status that the client happened to recover from.
+
+`generateStaticParams` now emits **43 real pages**, one per event, each with its own title and share
+description:
+
+> **Wakefield Farmers Market · Eventr**
+> Twenty-two vendors on the common, every Saturday through October. · Hall Park, Wakefield · Free ·
+> Posted by Wakefield Parks & Recreation
+
+This required a synchronous build-time read (`src/data/static.ts`), because the async `DataSource`
+cannot serve a static render — the same class of problem as bug 1. The descriptions deliberately
+omit dates: seed schedules are relative to build time, so a baked-in "Thu, Aug 6" would be quietly
+wrong a week later.
+
+**Still true and worth knowing:** those pages carry correct *metadata* but no body content, because
+the detail body is gated on the async query. Good enough for share previews, not yet good enough
+for search indexing. Fixing it means feeding static data in as `initialData` — worth doing before
+launch, not before there is a backend.
+
+### 3. Changing your town silently wiped your filters
+
+Set "Free only", change town, and the filter was gone with no indication. Price and category lived
+in `FeedScreen` state, and changing town unmounts that screen.
+
+They now live in persisted preferences, which also closes an outstanding `BUILD-PLAN.md` Phase 6
+item — *"filters persisted across launches"* — that was never actually done. Verified: filters
+survive both a town change and a full reload.
+
+Stored categories are validated against the enum on read rather than trusted. A stale value from an
+older build would otherwise filter the feed to nothing with no way for the user to tell why.
+
+The time tab deliberately does **not** persist. Reopening the app tomorrow still showing yesterday's
+"Now" would be wrong.
+
+### Two things that looked like bugs and were not
+
+- **Deep link → Back lands on the location gate.** Correct: a first-time visitor arriving from a
+  shared link genuinely has no town yet. Someone who has used the app before goes to the feed.
+- **Six rapid taps on Going left the count unchanged.** Also correct — six toggles is an even
+  number. Re-tested with five: the stance sticks, the count lands on 29, and storage holds
+  `{"e-derby-wharf-walk":"going"}`. No desync.

@@ -10,8 +10,19 @@ import { EventDetail } from '@/features/event/EventDetail';
 import { clearHeroSource } from '@/features/event/heroStore';
 import { usePreferences } from '@/lib/preferences';
 import { useEventQuery } from '@/lib/queries/events';
+import { Seo } from '@/lib/seo';
+import { staticEventIds, staticEventMeta } from '@/data/static';
 
 const CLOCK_TICK_MS = 30_000;
+
+/**
+ * Emits one HTML file per event at build time, so a shared link resolves to a real
+ * page with the event's own title rather than to a 404 that the client happens to
+ * recover from.
+ */
+export async function generateStaticParams(): Promise<{ id: string }[]> {
+  return staticEventIds().map((id) => ({ id }));
+}
 
 export default function EventRoute() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -24,6 +35,13 @@ export default function EventRoute() {
     const handle = setInterval(() => setNow(new Date()), CLOCK_TICK_MS);
     return () => clearInterval(handle);
   }, []);
+
+  // Resolved synchronously so it lands in the statically generated HTML — the async
+  // query is still pending at that point and would contribute nothing.
+  const meta = staticEventMeta(id);
+  const seo = meta ? (
+    <Seo title={meta.title} description={meta.description} path={`/event/${meta.id}`} />
+  ) : null;
 
   const origin = {
     latitude: preferences.town.latitude,
@@ -39,14 +57,17 @@ export default function EventRoute() {
 
   if (query.isPending) {
     return (
-      <View
-        style={{ flex: 1, backgroundColor: theme.color.page, padding: space.lg, gap: space.md }}
-      >
-        <Skeleton width="80%" height={26} />
-        <Skeleton width="40%" height={32} />
-        <Skeleton width="100%" height={14} />
-        <Skeleton width="90%" height={14} />
-      </View>
+      <>
+        {seo}
+        <View
+          style={{ flex: 1, backgroundColor: theme.color.page, padding: space.lg, gap: space.md }}
+        >
+          <Skeleton width="80%" height={26} />
+          <Skeleton width="40%" height={32} />
+          <Skeleton width="100%" height={14} />
+          <Skeleton width="90%" height={14} />
+        </View>
+      </>
     );
   }
 
@@ -71,5 +92,10 @@ export default function EventRoute() {
     );
   }
 
-  return <EventDetail event={query.data} now={now} onClose={close} />;
+  return (
+    <>
+      {seo}
+      <EventDetail event={query.data} now={now} onClose={close} />
+    </>
+  );
 }

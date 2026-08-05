@@ -18,7 +18,7 @@ import {
 } from 'react';
 
 import { DEFAULT_TOWN, type Town } from './towns';
-import { METERS_PER_MILE } from '@/types/event';
+import { EVENT_CATEGORIES, METERS_PER_MILE, type EventCategory } from '@/types/event';
 
 const STORAGE_KEY = 'eventr.preferences.v1';
 
@@ -27,12 +27,24 @@ export type Preferences = {
   readonly radiusM: number;
   /** False until the user has actually chosen, so we know to show the location gate. */
   readonly chosen: boolean;
+  /**
+   * Price and category live here rather than in screen state so they survive a
+   * relaunch — and, more visibly, so changing your town does not silently wipe them.
+   * The time tab deliberately does not persist: reopening the app tomorrow on "Now"
+   * from yesterday would be wrong.
+   */
+  readonly freeOnly: boolean;
+  readonly maxPrice: number | null;
+  readonly categories: readonly EventCategory[] | null;
 };
 
 const DEFAULT_PREFERENCES: Preferences = {
   town: DEFAULT_TOWN,
   radiusM: 10 * METERS_PER_MILE,
   chosen: false,
+  freeOnly: false,
+  maxPrice: null,
+  categories: null,
 };
 
 type PreferencesContextValue = {
@@ -40,6 +52,8 @@ type PreferencesContextValue = {
   readonly ready: boolean;
   setTown: (town: Town) => void;
   setRadius: (radiusM: number) => void;
+  setPrice: (next: { freeOnly: boolean; maxPrice: number | null }) => void;
+  setCategories: (categories: readonly EventCategory[] | null) => void;
 };
 
 const PreferencesContext = createContext<PreferencesContextValue>({
@@ -47,6 +61,8 @@ const PreferencesContext = createContext<PreferencesContextValue>({
   ready: false,
   setTown: () => {},
   setRadius: () => {},
+  setPrice: () => {},
+  setCategories: () => {},
 });
 
 function parse(raw: string | null): Preferences {
@@ -54,7 +70,24 @@ function parse(raw: string | null): Preferences {
   try {
     const parsed = JSON.parse(raw) as Partial<Preferences>;
     if (!parsed.town || typeof parsed.radiusM !== 'number') return DEFAULT_PREFERENCES;
-    return { town: parsed.town, radiusM: parsed.radiusM, chosen: parsed.chosen === true };
+
+    // Categories are validated against the enum rather than trusted: a stale value
+    // from an older build would otherwise filter the feed down to nothing with no
+    // way for the user to tell why.
+    const categories = Array.isArray(parsed.categories)
+      ? parsed.categories.filter((c): c is EventCategory =>
+          (EVENT_CATEGORIES as readonly string[]).includes(c),
+        )
+      : null;
+
+    return {
+      town: parsed.town,
+      radiusM: parsed.radiusM,
+      chosen: parsed.chosen === true,
+      freeOnly: parsed.freeOnly === true,
+      maxPrice: typeof parsed.maxPrice === 'number' ? parsed.maxPrice : null,
+      categories: categories && categories.length > 0 ? categories : null,
+    };
   } catch {
     // Corrupt storage should reset to defaults, never crash the app on launch.
     return DEFAULT_PREFERENCES;
@@ -99,6 +132,8 @@ export function PreferencesProvider({ children }: { children: ReactNode }) {
       ready,
       setTown: (town) => persist({ ...preferences, town, chosen: true }),
       setRadius: (radiusM) => persist({ ...preferences, radiusM }),
+      setPrice: ({ freeOnly, maxPrice }) => persist({ ...preferences, freeOnly, maxPrice }),
+      setCategories: (categories) => persist({ ...preferences, categories }),
     }),
     [preferences, ready, persist],
   );

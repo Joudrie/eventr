@@ -16,6 +16,7 @@ import { Button, Divider, Icon, Press, Text, Toast } from '@/design/primitives';
 import { useTheme } from '@/design/theme';
 import { border, radius, space, type as typeScale } from '@/design/tokens';
 import { usePreferences } from '@/lib/preferences';
+import { Seo } from '@/lib/seo';
 import { nearestTown, searchTowns, type Town } from '@/lib/towns';
 
 export default function LocationGate() {
@@ -67,6 +68,11 @@ export default function LocationGate() {
         { backgroundColor: theme.color.page, paddingTop: insets.top + space.xl },
       ]}
     >
+      <Seo
+        title="Pick your town"
+        description="Choose a town to see what's happening nearby."
+        path="/location"
+      />
       <View style={styles.intro}>
         <Text variant="displayL">Where are you?</Text>
         <Text variant="body" color="textSecondary">

@@ -68,14 +68,15 @@ export function FeedScreen({ onOpenEvent }: { onOpenEvent?: (event: FeedEvent) =
   const theme = useTheme();
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { preferences, setRadius } = usePreferences();
+  const { preferences, setRadius, setPrice, setCategories } = usePreferences();
 
   const [window, setWindow] = useState<FeedWindow>('all');
   const [now, setNow] = useState(() => new Date());
 
-  const [freeOnly, setFreeOnly] = useState(false);
-  const [maxPrice, setMaxPrice] = useState<number | null>(null);
-  const [categories, setCategories] = useState<readonly EventCategory[] | null>(null);
+  // Price and category come from persisted preferences, not screen state — screen
+  // state was silently wiped whenever this component remounted, which is what changing
+  // your town does.
+  const { freeOnly, maxPrice, categories } = preferences;
   const [openSheet, setOpenSheet] = useState<'radius' | 'price' | 'category' | null>(null);
 
   const listRef = useAnimatedRef<FlatList<FeedEvent>>();
@@ -222,14 +223,12 @@ export function FeedScreen({ onOpenEvent }: { onOpenEvent?: (event: FeedEvent) =
 
   const toggleCategory = (category: EventCategory) => {
     resetScroll();
-    setCategories((current) => {
-      const next = new Set(current ?? []);
-      if (next.has(category)) next.delete(category);
-      else next.add(category);
-      // Null rather than an empty set: "none selected" and "all categories" are the
-      // same query, and null is the one the data layer already understands.
-      return next.size === 0 ? null : [...next];
-    });
+    const next = new Set(categories ?? []);
+    if (next.has(category)) next.delete(category);
+    else next.add(category);
+    // Null rather than an empty set: "none selected" and "all categories" are the
+    // same query, and null is the one the data layer already understands.
+    setCategories(next.size === 0 ? null : [...next]);
   };
 
   const priceLabel = freeOnly
@@ -394,8 +393,7 @@ export function FeedScreen({ onOpenEvent }: { onOpenEvent?: (event: FeedEvent) =
         filters={queryInput}
         onApply={(next) => {
           resetScroll();
-          setFreeOnly(next.freeOnly);
-          setMaxPrice(next.maxPrice);
+          setPrice(next);
           setOpenSheet(null);
         }}
       />
