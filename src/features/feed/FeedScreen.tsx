@@ -28,6 +28,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { strings } from '@/copy/strings';
 import { timing, haptics } from '@/design/motion';
 import {
+  Button,
   Chip,
   EmptyState,
   EndOfList,
@@ -378,6 +379,18 @@ export function FeedScreen({ onOpenEvent }: { onOpenEvent?: (event: FeedEvent) =
         showsVerticalScrollIndicator={false}
       />
 
+      {/* The one pill in the app, and the only floating element — DESIGN.md reserves
+          both for exactly this control. */}
+      <View style={[styles.postButton, { bottom: insets.bottom + space.lg }]}>
+        <Button
+          label="Post an event"
+          variant="accent"
+          pill
+          onPress={() => router.push('/post')}
+          accessibilityHint="Free, no account needed"
+        />
+      </View>
+
       <RadiusSheet
         visible={openSheet === 'radius'}
         onClose={() => setOpenSheet(null)}
@@ -455,5 +468,9 @@ const styles = StyleSheet.create({
   },
   skeletons: {
     gap: space.sm,
+  },
+  postButton: {
+    position: 'absolute',
+    right: space.lg,
   },
 });

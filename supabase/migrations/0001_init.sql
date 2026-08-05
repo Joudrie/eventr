@@ -64,6 +64,10 @@ create table events (
   photo_path    text,
 
   category      event_category not null,
+  -- Free-form tags on top of the fixed category. The category drives the filter row
+  -- and has to stay a closed set; tags are how a poster says "sourdough" or "u12" or
+  -- "dog friendly" without us inventing a category for each.
+  tags          text[] not null default '{}',
 
   -- Price is a label, not a number: a high school game can be $5 general / $20 front row.
   -- price_from exists only to drive the "under $X" filter.
@@ -96,6 +100,10 @@ create table events (
   updated_at    timestamptz not null default now(),
 
   constraint ends_after_starts check (ends_at > starts_at),
+  -- Bounded so a tag list cannot become a keyword-stuffing surface.
+  constraint tags_bounded check (
+    array_length(tags, 1) is null or array_length(tags, 1) <= 6
+  ),
   -- A free event with a price floor is a contradiction the feed's Free filter would expose.
   constraint free_has_no_price check (price_tier = 'paid' or coalesce(price_from, 0) = 0)
 );

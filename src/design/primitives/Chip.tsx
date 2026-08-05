@@ -24,6 +24,8 @@ export type ChipProps = {
   count?: number;
   /** Renders a chevron, marking this as a chip that opens a sheet rather than toggles. */
   opensSheet?: boolean;
+  /** Renders a close mark, for chips that represent something you can take off. */
+  removable?: boolean;
   disabled?: boolean;
   accessibilityHint?: string;
 };
@@ -34,6 +36,7 @@ export function Chip({
   selected = false,
   count,
   opensSheet = false,
+  removable = false,
   disabled = false,
   accessibilityHint,
 }: ChipProps) {
@@ -77,6 +80,7 @@ export function Chip({
           </View>
         ) : null}
         {opensSheet ? <Icon name="chevronDown" size={14} color={textColor} /> : null}
+        {removable ? <Icon name="close" size={13} color={textColor} /> : null}
       </View>
     </Press>
   );

@@ -7,6 +7,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { ThemeProvider } from '@/design/theme';
 import { PreferencesProvider } from '@/lib/preferences';
+import { MyEventsProvider } from '@/lib/myEvents';
 import { RsvpProvider } from '@/lib/rsvp';
 
 export default function RootLayout() {
@@ -31,22 +32,24 @@ export default function RootLayout() {
         <ThemeProvider>
           <QueryClientProvider client={queryClient}>
             <PreferencesProvider>
-              <RsvpProvider>
-                <StatusBar style="auto" />
-                <Stack screenOptions={{ headerShown: false }}>
-                  <Stack.Screen name="index" />
-                  <Stack.Screen name="location" />
-                  {/*
+              <MyEventsProvider>
+                <RsvpProvider>
+                  <StatusBar style="auto" />
+                  <Stack screenOptions={{ headerShown: false }}>
+                    <Stack.Screen name="index" />
+                    <Stack.Screen name="location" />
+                    {/*
                   The detail screen animates itself from the card's measured position
                   and owns its own swipe-to-dismiss, so the stack must not layer a
                   second animation on top of it.
                 */}
-                  <Stack.Screen
-                    name="event/[id]"
-                    options={{ animation: 'none', gestureEnabled: false }}
-                  />
-                </Stack>
-              </RsvpProvider>
+                    <Stack.Screen
+                      name="event/[id]"
+                      options={{ animation: 'none', gestureEnabled: false }}
+                    />
+                  </Stack>
+                </RsvpProvider>
+              </MyEventsProvider>
             </PreferencesProvider>
           </QueryClientProvider>
         </ThemeProvider>

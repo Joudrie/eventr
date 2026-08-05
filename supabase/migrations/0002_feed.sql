@@ -19,6 +19,7 @@ select
   e.description,
   e.photo_path,
   e.category,
+  e.tags,
   e.price_tier,
   e.price_label,
   e.price_from,
@@ -123,6 +124,7 @@ returns table (
   description text,
   photo_path text,
   category event_category,
+  tags text[],
   price_tier price_tier,
   price_label text,
   price_from numeric,
@@ -155,7 +157,7 @@ as $$
     select st_setsrid(st_makepoint(p_lng, p_lat), 4326)::geography as g
   )
   select
-    v.id, v.title, v.summary, v.description, v.photo_path, v.category,
+    v.id, v.title, v.summary, v.description, v.photo_path, v.category, v.tags,
     v.price_tier, v.price_label, v.price_from,
     v.venue_name, v.address_line, v.town, v.latitude, v.longitude,
     v.starts_at, v.ends_at, v.capacity_state,

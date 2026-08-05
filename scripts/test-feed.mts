@@ -324,6 +324,15 @@ check('every seed event has a poster and a plausible price shape', () => {
   }
 });
 
+check('a full event never outranks an open one', () => {
+  const ranked = queryLocalEvents(filters({ radiusM: 50 * METERS_PER_MILE }), NOW);
+  const firstFull = ranked.events.findIndex((e) => e.capacityState === 'full');
+  if (firstFull >= 0) {
+    const openAfter = ranked.events.slice(firstFull).filter((e) => e.capacityState !== 'full');
+    assertEqual(openAfter.length, 0, 'an open event sorted below a full one');
+  }
+});
+
 /* ------------------------------------------------------------------ report */
 
 console.log(`feed tests — ${passed} passed, ${failures.length} failed`);

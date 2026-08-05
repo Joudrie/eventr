@@ -110,6 +110,7 @@ export function EventCard({ event, now, onPress }: EventCardProps) {
           {goingLabel}
         </Text>
 
+        {event.pendingReview ? <Badge label={strings.event.pending} tone="brand" /> : null}
         {full ? <Badge label={strings.event.full} /> : null}
         {event.capacityState === 'filling' ? (
           <Badge label={strings.event.filling} tone="accent" />

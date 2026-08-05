@@ -60,6 +60,8 @@ export type FeedEvent = {
   readonly description: string | null;
   readonly photoPath: string | null;
   readonly category: EventCategory;
+  /** Free-form, max 6. The category is the closed set; tags are the poster's own words. */
+  readonly tags: readonly string[];
 
   readonly priceTier: PriceTier;
   /** What the user reads: "Free", "$5+", "$10 adults / $5 students". Never a bare number. */
@@ -87,6 +89,12 @@ export type FeedEvent = {
   readonly verified: boolean;
   readonly boosted: boolean;
 
+  /**
+   * Posted from this device and awaiting review, so visible only to its author.
+   * Never set on anything that came from the feed.
+   */
+  readonly pendingReview?: boolean;
+
   readonly goingCount: number;
   readonly interestedCount: number;
   readonly commentCount: number;
@@ -95,6 +103,10 @@ export type FeedEvent = {
   readonly distanceM: number;
   readonly score: number;
 };
+
+/** Matches the `tags_bounded` constraint in the schema. */
+export const MAX_TAGS = 6;
+export const MAX_TAG_LENGTH = 24;
 
 export type FeedFilters = {
   readonly origin: Coordinates;

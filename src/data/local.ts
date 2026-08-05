@@ -8,6 +8,7 @@
  * silently diverge.
  */
 
+import { readMyEvents, type DraftEvent } from '@/lib/myEventsStore';
 import { distanceMeters, eventScore } from './ranking';
 import { SEED_EVENTS, SEED_POSTERS, type SeedEvent, type SeedSchedule } from './seed/events';
 import type { DataSource, FeedPage } from './source';
@@ -82,6 +83,7 @@ function toFeedEvent(seed: SeedEvent, origin: Coordinates, radiusM: number, now:
     // Phase 3 decides between real seed images and a text-forward fallback.
     photoPath: null,
     category: seed.category,
+    tags: [],
     priceTier: seed.priceTier,
     priceLabel: seed.priceLabel,
     priceFrom: seed.priceFrom,
@@ -112,6 +114,71 @@ function toFeedEvent(seed: SeedEvent, origin: Coordinates, radiusM: number, now:
       endsAt,
       goingCount: going,
       boosted,
+      useTraction: true,
+      now,
+    }),
+  };
+}
+
+/**
+ * Events posted from this device, projected into the same shape as everything else.
+ *
+ * `pendingReview` marks them: they sit in the feed for their author and nowhere else,
+ * which is what the trust model in BUILD-PLAN.md §1 actually specifies for a new
+ * poster's first event.
+ */
+function draftToFeedEvent(
+  draft: DraftEvent,
+  origin: Coordinates,
+  radiusM: number,
+  now: Date,
+): FeedEvent {
+  const startsAt = new Date(draft.startsAt);
+  const endsAt = new Date(draft.endsAt);
+  const distanceM = distanceMeters(origin, {
+    latitude: draft.latitude,
+    longitude: draft.longitude,
+  });
+
+  return {
+    id: draft.id,
+    title: draft.title,
+    summary: draft.summary,
+    description: draft.description.length > 0 ? draft.description : null,
+    photoPath: null,
+    category: draft.category,
+    tags: draft.tags,
+    priceTier: draft.priceTier,
+    priceLabel: draft.priceLabel.length > 0 ? draft.priceLabel : null,
+    priceFrom: draft.priceFrom,
+    venueName: draft.venueName.length > 0 ? draft.venueName : null,
+    addressLine: draft.addressLine.length > 0 ? draft.addressLine : null,
+    town: draft.town,
+    latitude: draft.latitude,
+    longitude: draft.longitude,
+    startsAt: draft.startsAt,
+    endsAt: draft.endsAt,
+    capacityState: 'open',
+    ticketUrl: null,
+    contactUrl: null,
+    contactEmail: draft.contactEmail.length > 0 ? draft.contactEmail : null,
+    contactPhone: null,
+    commentsLocked: false,
+    posterName: 'You',
+    verified: false,
+    boosted: false,
+    goingCount: 0,
+    interestedCount: 0,
+    commentCount: 0,
+    pendingReview: true,
+    distanceM,
+    score: eventScore({
+      distanceM,
+      radiusM,
+      startsAt,
+      endsAt,
+      goingCount: 0,
+      boosted: false,
       useTraction: true,
       now,
     }),
@@ -163,9 +230,10 @@ function matchesWindow(event: FeedEvent, filters: FeedFilters, now: Date): boole
 /* -------------------------------------------------------------- the source */
 
 export function queryLocalEvents(filters: FeedFilters, now: Date = new Date()): FeedPage {
-  const projected = SEED_EVENTS.map((seed) =>
-    toFeedEvent(seed, filters.origin, filters.radiusM, now),
-  );
+  const projected = [
+    ...readMyEvents().map((draft) => draftToFeedEvent(draft, filters.origin, filters.radiusM, now)),
+    ...SEED_EVENTS.map((seed) => toFeedEvent(seed, filters.origin, filters.radiusM, now)),
+  ];
 
   const matched = projected.filter((event) => {
     // An event that has already ended never appears, whatever the window.
@@ -198,6 +266,15 @@ export function queryLocalEvents(filters: FeedFilters, now: Date = new Date()): 
       : matched;
 
   const sorted = [...scored].sort((a, b) => {
+    /**
+     * Your own pending post pins to the top. It has no going count, so ranking would
+     * bury it under established events — and "I just posted it, where did it go" is
+     * the fastest way to convince someone posting does not work. Only its author can
+     * see it at all, so this costs no one else a slot.
+     */
+    const mine = Number(b.pendingReview ?? false) - Number(a.pendingReview ?? false);
+    if (mine !== 0) return mine;
+
     // Full events stay visible but sort below everything still open.
     const fullness = Number(a.capacityState === 'full') - Number(b.capacityState === 'full');
     if (fullness !== 0) return fullness;
@@ -236,6 +313,9 @@ export const localSource: DataSource = {
   },
 
   async getEvent(id, origin) {
+    const draft = readMyEvents().find((event) => event.id === id);
+    if (draft) return draftToFeedEvent(draft, origin, 1, new Date());
+
     const seed = SEED_EVENTS.find((event) => event.id === id);
     if (!seed) return null;
     return toFeedEvent(seed, origin, 1, new Date());

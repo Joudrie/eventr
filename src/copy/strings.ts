@@ -62,6 +62,11 @@ export const strings = {
     filling: 'Filling up',
     cancelled: 'Cancelled',
     justPosted: 'Just posted',
+    pending: 'Pending review',
+    // Says what is actually true: it exists, it is yours, nobody else can see it yet.
+    pendingNotice:
+      'Only you can see this. A person reviews first posts before they go out to the town.',
+    tags: 'Tags',
     organizer: 'Organizer',
     commentsLocked: 'The organizer turned off comments.',
   },

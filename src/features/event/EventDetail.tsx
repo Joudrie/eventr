@@ -37,7 +37,7 @@ import {
   VerifiedMark,
 } from '@/design/primitives';
 import { useTheme } from '@/design/theme';
-import { space } from '@/design/tokens';
+import { border, radius, space } from '@/design/tokens';
 import { formatDistance, shortPrice } from '@/lib/geo';
 import {
   addToCalendar,
@@ -228,6 +228,15 @@ export function EventDetail({ event, now, onClose }: EventDetailProps) {
               ) : null}
             </View>
 
+            {event.pendingReview ? (
+              <View style={[styles.pending, { borderColor: theme.color.brand }]}>
+                <Badge label={strings.event.pending} tone="brand" />
+                <Text variant="meta" color="textSecondary">
+                  {strings.event.pendingNotice}
+                </Text>
+              </View>
+            ) : null}
+
             <View style={styles.actions}>
               <RsvpButtons event={event} />
             </View>
@@ -262,6 +271,16 @@ export function EventDetail({ event, now, onClose }: EventDetailProps) {
             {event.priceLabel ? (
               <Section title="Price">
                 <Text variant="body">{event.priceLabel}</Text>
+              </Section>
+            ) : null}
+
+            {event.tags.length > 0 ? (
+              <Section title={strings.event.tags}>
+                <View style={styles.tags}>
+                  {event.tags.map((tag) => (
+                    <Badge key={tag} label={tag} />
+                  ))}
+                </View>
               </Section>
             ) : null}
 
@@ -390,6 +409,18 @@ const styles = StyleSheet.create({
   actions: {
     marginTop: space.lg,
     marginBottom: space.lg,
+  },
+  pending: {
+    borderWidth: border.hairline,
+    borderRadius: radius.base,
+    padding: space.md,
+    marginTop: space.md,
+    gap: space.xs,
+  },
+  tags: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: space.xs,
   },
   section: {
     paddingVertical: space.md,
