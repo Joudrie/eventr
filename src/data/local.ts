@@ -200,6 +200,24 @@ function startOfDay(date: Date): Date {
  * is the current weekend rather than the next one — "This Weekend" on a Saturday
  * morning must mean today.
  */
+/**
+ * How many live events each town has, right now. Drives the town picker's ordering.
+ *
+ * Counted from the same seed the feed reads, so a town's position reflects what is
+ * actually there rather than a hand-written list of which towns are lively — which
+ * would be a guess, and would be wrong the moment this covers anywhere new.
+ */
+export function eventCountsByTown(now: Date = new Date()): ReadonlyMap<string, number> {
+  const counts = new Map<string, number>();
+  for (const seed of SEED_EVENTS) {
+    const { endsAt } = resolveSchedule(seed.schedule, now);
+    // Finished events are not a reason to drive somewhere.
+    if (endsAt.getTime() <= now.getTime()) continue;
+    counts.set(seed.town, (counts.get(seed.town) ?? 0) + 1);
+  }
+  return counts;
+}
+
 export function weekendRange(now: Date): { from: Date; to: Date } {
   const day = now.getDay(); // 0 Sun … 6 Sat
   const daysUntilSaturday = day === 0 ? -1 : 6 - day;

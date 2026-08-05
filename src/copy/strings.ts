@@ -72,6 +72,11 @@ export const strings = {
     house: 'From the makers of Eventr',
   },
 
+  location: {
+    eventCount: (n: number) =>
+      n === 0 ? 'Nothing on right now' : n === 1 ? '1 event' : `${n} events`,
+  },
+
   boost: {
     title: 'Boost this event',
     action: 'Boost',

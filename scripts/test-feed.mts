@@ -10,6 +10,9 @@
 
 import { atCapacity, capacityState, spotsLeft } from '../src/lib/capacity.ts';
 import { AD_INTERVAL, composeFeed } from '../src/features/feed/feedItems.ts';
+import { rankTowns } from '../src/lib/townRanking.ts';
+import { TOWNS, DEFAULT_TOWN } from '../src/lib/towns.ts';
+import { eventCountsByTown } from '../src/data/local.ts';
 import type { Ad } from '../src/data/ads.ts';
 import { queryLocalEvents, weekendRange } from '../src/data/local.ts';
 import { RANKING, distanceMeters, eventScore } from '../src/data/ranking.ts';
@@ -476,6 +479,49 @@ check('no paid term survives in the ranking function', () => {
     !Object.keys(RANKING).some((key) => /boost/i.test(key)),
     'RANKING regained a paid weight — boosting must buy a labelled slot, not a position',
   );
+});
+
+/* ------------------------------------------------------------- town order */
+
+const rankOf = (name: string, count: (town: { name: string }) => number): number =>
+  rankTowns(TOWNS, DEFAULT_TOWN, count).findIndex((entry) => entry.town.name === name);
+
+check('a lively town beats a closer dead one', () => {
+  // The whole reason this is not sorted by distance. Boston is ten miles from
+  // Wakefield; if something is always on there and nothing is on next door, it belongs
+  // at the top, and pure proximity would bury it under a dozen empty towns.
+  const busyBoston = rankOf('Boston', (town) => (town.name === 'Boston' ? 20 : 2));
+  assertEqual(busyBoston, 0, 'a far town with real density should lead');
+
+  const deadBoston = rankOf('Boston', (town) => (town.name === 'Boston' ? 0 : 3));
+  assert(deadBoston > 5, 'a far town with nothing on should not lead');
+});
+
+check('proximity still counts for something', () => {
+  // With everything equally busy it collapses to distance, which is the right tiebreak.
+  const order = rankTowns(TOWNS, DEFAULT_TOWN, () => 3);
+  for (let i = 1; i < order.length; i += 1) {
+    assert(
+      order[i]!.distanceM >= order[i - 1]!.distanceM,
+      `equal density should order by distance, but ${order[i]!.town.name} came after a farther town`,
+    );
+  }
+});
+
+check('density saturates so one city cannot own every list', () => {
+  // A town with 300 listings must not outrank a town with 30 by ten times, or a
+  // hyperlocal app just funnels everyone into the nearest city forever.
+  const at30 = rankTowns(TOWNS, DEFAULT_TOWN, (town) => (town.name === 'Boston' ? 30 : 8));
+  const at300 = rankTowns(TOWNS, DEFAULT_TOWN, (town) => (town.name === 'Boston' ? 300 : 8));
+  const scoreAt = (list: ReturnType<typeof rankTowns>) =>
+    list.find((entry) => entry.town.name === 'Boston')!.score;
+  assert(scoreAt(at300) - scoreAt(at30) < 0.02, 'density kept growing past saturation');
+});
+
+check('the home town leads its own list', () => {
+  const counts = eventCountsByTown();
+  const order = rankTowns(TOWNS, DEFAULT_TOWN, (town) => counts.get(town.name) ?? 0);
+  assertEqual(order[0]!.town.name, DEFAULT_TOWN.name, 'where you are should come first');
 });
 
 console.log(`feed tests — ${passed} passed, ${failures.length} failed`);

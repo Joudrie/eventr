@@ -8,7 +8,7 @@
 
 import * as Location from 'expo-location';
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { FlatList, StyleSheet, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -18,18 +18,44 @@ import { border, radius, space, type as typeScale } from '@/design/tokens';
 import { usePreferences } from '@/lib/preferences';
 import { Seo } from '@/lib/seo';
 import { nearestTown, searchTowns, type Town } from '@/lib/towns';
+import { rankTowns, type RankedTown } from '@/lib/townRanking';
+import { eventCountsByTown } from '@/data/local';
+import { strings } from '@/copy/strings';
 
 export default function LocationGate() {
   const theme = useTheme();
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { setTown } = usePreferences();
+  const { preferences, setTown } = usePreferences();
 
   const [query, setQuery] = useState('');
   const [locating, setLocating] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const results = searchTowns(query);
+  /**
+   * With no query, the list is ordered by where is actually worth going: a mix of how
+   * close a town is and how much is on there, with a bonus for immediate neighbours.
+   * Alphabetical would be arbitrary and pure distance would bury Boston under a dozen
+   * towns that have nothing happening tonight.
+   *
+   * Typing switches to name matching, because at that point you know what you want.
+   */
+  const results = useMemo((): readonly RankedTown[] => {
+    const matches = searchTowns(query);
+    const counts = eventCountsByTown();
+    const origin = preferences.town;
+    const ranked = rankTowns(matches, origin, (town) => counts.get(town.name) ?? 0);
+
+    // A typed query already expresses an intent; reordering it by liveliness would
+    // move the town somebody is literally spelling out. Keep the name-match order and
+    // only borrow the counts.
+    if (query.trim().length === 0) return ranked;
+    const byName = new Map(ranked.map((entry) => [entry.town.name, entry]));
+    return matches.flatMap((town) => {
+      const entry = byName.get(town.name);
+      return entry ? [entry] : [];
+    });
+  }, [query, preferences.town]);
 
   const choose = (town: Town) => {
     setTown(town);
@@ -120,7 +146,7 @@ export default function LocationGate() {
 
       <FlatList
         data={results}
-        keyExtractor={(town) => `${town.name}-${town.state}`}
+        keyExtractor={(item) => `${item.town.name}-${item.town.state}`}
         keyboardShouldPersistTaps="handled"
         ItemSeparatorComponent={Divider}
         contentContainerStyle={{ paddingBottom: insets.bottom + space.xl }}
@@ -133,15 +159,17 @@ export default function LocationGate() {
         }
         renderItem={({ item }) => (
           <Press
-            onPress={() => choose(item)}
+            onPress={() => choose(item.town)}
             feedback="select"
             scaleOnPress={false}
-            accessibilityLabel={`${item.name}, ${item.state}`}
+            accessibilityLabel={`${item.town.name}, ${item.town.state}. ${strings.location.eventCount(item.eventCount)}`}
             style={styles.row}
           >
-            <Text variant="title">{item.name}</Text>
+            <Text variant="title">{item.town.name}</Text>
+            {/* The number is why the town sits where it does in the list. Showing the
+                ordering's own reasoning beats making people infer it. */}
             <Text variant="meta" color="textSecondary">
-              {item.state}
+              {strings.location.eventCount(item.eventCount)}
             </Text>
           </Press>
         )}
