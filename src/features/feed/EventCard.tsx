@@ -76,16 +76,9 @@ export function EventCard({ event, now, onPress }: EventCardProps) {
         ) : null}
 
         <View ref={headlineRef} style={styles.headline}>
-          <View style={styles.titleRow}>
-            <Text variant="title" numberOfLines={2} style={styles.title}>
-              {event.title}
-            </Text>
-            {event.verified ? (
-              <View style={styles.verified}>
-                <VerifiedMark organizer={event.posterName} />
-              </View>
-            ) : null}
-          </View>
+          <Text variant="title" numberOfLines={2}>
+            {event.title}
+          </Text>
           <Text variant="body" color="textSecondary" numberOfLines={2}>
             {event.summary}
           </Text>
@@ -115,6 +108,18 @@ export function EventCard({ event, now, onPress }: EventCardProps) {
         {event.capacityState === 'filling' ? (
           <Badge label={strings.event.filling} tone="accent" />
         ) : null}
+
+        {/*
+          Pinned to the right edge of the meta row so it lands in the same place on
+          every card. Inline after the title, its position moved with the title's
+          length and jumped again whenever the title wrapped — which made a row of
+          cards look misaligned even though each one was individually correct.
+        */}
+        {event.verified ? (
+          <View style={styles.verified}>
+            <VerifiedMark organizer={event.posterName} />
+          </View>
+        ) : null}
       </View>
     </Card>
   );
@@ -142,19 +147,10 @@ const styles = StyleSheet.create({
     flex: 1,
     gap: space.xs,
   },
-  titleRow: {
-    flexDirection: 'row',
-    // Top-aligned, not centered: when the title wraps to two lines a centered check
-    // floats between them and reads as detached from the name it belongs to.
-    alignItems: 'flex-start',
-    gap: space.xs,
-  },
   verified: {
-    // Nudged down to sit on the first line's cap height rather than its box top.
-    marginTop: 3,
-  },
-  title: {
-    flexShrink: 1,
+    // Pushes to the right edge regardless of what precedes it, so the check sits at
+    // one constant x down the whole feed.
+    marginLeft: 'auto',
   },
   price: {
     // Never squeezed by a long title; the title wraps instead.

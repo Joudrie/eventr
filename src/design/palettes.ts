@@ -165,6 +165,158 @@ const emberDark: Theme = {
   },
 };
 
+/* ------------------------------------------------- pastel candidates ------ */
+/**
+ * The pastel family.
+ *
+ * One structural rule makes these work: **the pastel is the page, the cards stay
+ * white.** A pastel cannot carry body text (too light against white) and cannot be
+ * text on white (fails contrast outright), so the only honest job for it is a tinted
+ * field behind white cards. That also keeps every description on plain white, which is
+ * where long text is easiest to read.
+ *
+ * `brand` therefore stays a deeper member of the same hue family — it has to clear
+ * 4.5:1 as text — and the pastel does the mood work in the background and in fills.
+ */
+
+const lilacLight: Theme = {
+  scheme: 'light',
+  color: {
+    page: '#F2EDFB',
+    surface: '#FFFFFF',
+    surfaceRaised: '#FFFFFF',
+    surfaceSunken: '#E6DCF6',
+    textPrimary: '#191428',
+    textSecondary: '#5B5270',
+    textOnBrand: '#FFFFFF',
+    textOnAccent: '#191428',
+    border: 'rgba(25, 20, 40, 0.12)',
+    borderStrong: 'rgba(25, 20, 40, 0.50)',
+    brand: '#6035B8',
+    brandPressed: '#42217F',
+    accent: '#FFDE7A',
+    accentPressed: '#E5BE45',
+    danger: '#B02D26',
+    overlay: 'rgba(25, 20, 40, 0.40)',
+    skeleton: '#E6DCF6',
+  },
+};
+
+const lilacDark: Theme = {
+  scheme: 'dark',
+  color: {
+    page: '#141020',
+    surface: '#1E1830',
+    surfaceRaised: '#28203D',
+    surfaceSunken: '#141020',
+    textPrimary: '#EFEAFA',
+    textSecondary: '#A79CC2',
+    textOnBrand: '#191428',
+    textOnAccent: '#191428',
+    border: 'rgba(239, 234, 250, 0.14)',
+    borderStrong: 'rgba(239, 234, 250, 0.38)',
+    brand: '#C4AAF5',
+    brandPressed: '#A98BE8',
+    accent: '#FFDE7A',
+    accentPressed: '#E5BE45',
+    danger: '#EE7268',
+    overlay: 'rgba(0, 0, 0, 0.60)',
+    skeleton: '#28203D',
+  },
+};
+
+const butterLight: Theme = {
+  scheme: 'light',
+  color: {
+    page: '#FDF6E0',
+    surface: '#FFFFFF',
+    surfaceRaised: '#FFFFFF',
+    surfaceSunken: '#F3E8C8',
+    textPrimary: '#1E1A12',
+    textSecondary: '#5E553F',
+    textOnBrand: '#FFFFFF',
+    textOnAccent: '#1E1A12',
+    border: 'rgba(30, 26, 18, 0.12)',
+    borderStrong: 'rgba(30, 26, 18, 0.50)',
+    brand: '#6B3FB5',
+    brandPressed: '#4A277F',
+    accent: '#FFD35C',
+    accentPressed: '#E0B233',
+    danger: '#A8342A',
+    overlay: 'rgba(30, 26, 18, 0.40)',
+    skeleton: '#F3E8C8',
+  },
+};
+
+const butterDark: Theme = {
+  scheme: 'dark',
+  color: {
+    page: '#17140D',
+    surface: '#221E14',
+    surfaceRaised: '#2D281B',
+    surfaceSunken: '#17140D',
+    textPrimary: '#F6EFDC',
+    textSecondary: '#AEA184',
+    textOnBrand: '#1E1A12',
+    textOnAccent: '#1E1A12',
+    border: 'rgba(246, 239, 220, 0.14)',
+    borderStrong: 'rgba(246, 239, 220, 0.38)',
+    brand: '#C9A8F5',
+    brandPressed: '#AE89E5',
+    accent: '#FFD35C',
+    accentPressed: '#E0B233',
+    danger: '#EE7268',
+    overlay: 'rgba(0, 0, 0, 0.60)',
+    skeleton: '#2D281B',
+  },
+};
+
+const skyLight: Theme = {
+  scheme: 'light',
+  color: {
+    page: '#EAF1FA',
+    surface: '#FFFFFF',
+    surfaceRaised: '#FFFFFF',
+    surfaceSunken: '#D9E5F4',
+    textPrimary: '#141A24',
+    textSecondary: '#4F5866',
+    textOnBrand: '#FFFFFF',
+    textOnAccent: '#141A24',
+    border: 'rgba(20, 26, 36, 0.12)',
+    borderStrong: 'rgba(20, 26, 36, 0.50)',
+    brand: '#6338B4',
+    brandPressed: '#43217D',
+    accent: '#FFD966',
+    accentPressed: '#E0B733',
+    danger: '#A8342A',
+    overlay: 'rgba(20, 26, 36, 0.40)',
+    skeleton: '#D9E5F4',
+  },
+};
+
+const skyDark: Theme = {
+  scheme: 'dark',
+  color: {
+    page: '#0E131B',
+    surface: '#181F2A',
+    surfaceRaised: '#212936',
+    surfaceSunken: '#0E131B',
+    textPrimary: '#E9EFF7',
+    textSecondary: '#95A1B2',
+    textOnBrand: '#141A24',
+    textOnAccent: '#141A24',
+    border: 'rgba(233, 239, 247, 0.14)',
+    borderStrong: 'rgba(233, 239, 247, 0.38)',
+    brand: '#B79CF2',
+    brandPressed: '#9B7DE5',
+    accent: '#FFD966',
+    accentPressed: '#E0B733',
+    danger: '#EE7268',
+    overlay: 'rgba(0, 0, 0, 0.60)',
+    skeleton: '#212936',
+  },
+};
+
 export const PALETTE_CANDIDATES: readonly PaletteCandidate[] = [
   {
     key: 'almanac',
@@ -186,5 +338,26 @@ export const PALETTE_CANDIDATES: readonly PaletteCandidate[] = [
     tagline: 'Warm orange lead. The most personality, and the most risk of reading loud.',
     light: emberLight,
     dark: emberDark,
+  },
+  {
+    key: 'lilac',
+    name: 'Lilac',
+    tagline: 'Pastel purple page, white cards, soft yellow accent. The closest to the brief.',
+    light: lilacLight,
+    dark: lilacDark,
+  },
+  {
+    key: 'butter',
+    name: 'Butter',
+    tagline: 'Pastel yellow page with purple accents — the mock inverted.',
+    light: butterLight,
+    dark: butterDark,
+  },
+  {
+    key: 'sky',
+    name: 'Sky',
+    tagline: 'Pastel blue page, purple and yellow accents. Calmest, and the most generic.',
+    light: skyLight,
+    dark: skyDark,
   },
 ];

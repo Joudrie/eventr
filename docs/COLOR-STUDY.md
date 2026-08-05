@@ -4,7 +4,8 @@ Brief: Eventr should feel **warm, inviting, and friendly** — a nice space to s
 A glimmer of personality, a drop of color, nothing more.
 
 Evidence lives in `app/palettes.tsx`, which renders every candidate behind the real feed.
-Screenshots in `docs/screenshots/palette-*.png`.
+Screenshots in `docs/screenshots/palette-*.png`. Six candidates: three warm (Almanac, Dusk, Ember)
+and three pastel (Lilac, Butter, Sky). All six clear WCAG AA in both schemes.
 
 ---
 
@@ -125,23 +126,57 @@ Deep burnt orange as the brand color on a warm cream field, with a brighter ambe
 
 ---
 
-## 5. Recommendation: **Almanac**
+## 4b. The pastel family (added after review)
 
-Best match to the brief, for three reasons:
+Brief update: pastel, purple and yellow, maybe light blue, **descriptions stay white**.
 
-1. **It gets warmth from the field rather than from a loud brand color.** "Warm, inviting, a nice
-   space" is a description of the *background* you sit in for a minute, not of a button. Almanac
-   solves it where the brief actually points.
-2. **It spends the least color**, which is both what you asked for ("a drop of color, nothing too
-   much") and what the strongest available evidence says is the decisive variable.
-3. **It avoids every occupied position** — not blue, not green, not Eventbrite's orange — without
-   reaching for anything strange.
+One structural rule makes pastels work here, and it also answers the "keep descriptions white"
+instinct directly: **the pastel is the page, the cards stay white.** A pastel cannot carry body
+text — too light against white — and cannot be text on white, where it fails contrast outright. Its
+only honest job is a tinted field *behind* white cards. So every description sits on plain white,
+which is where long text is easiest to read, and the colour does its work in the background.
 
-Second choice is **Dusk**, and it wins outright if keeping the balloon logo matters more than the
-warmth gain. That is a business call, not a design one, and it is yours.
+`brand` therefore stays a deeper member of the same hue family, because it has to clear 4.5:1 as
+text on white. The pastel is the mood; the deeper tone is the ink.
 
-I would not ship **Ember**. It is the most immediately likeable of the three, and it is the one
-that looks most like the competitor we spend a whole document distinguishing ourselves from.
+### Lilac — pastel purple page, soft yellow accent
+Closest to the brief as stated, and the only pastel that keeps continuity with the existing purple
+and gold logo. The lavender field reads calm and friendly without going anywhere near childish,
+because the saturation is low and the cards break it up.
+
+### Butter — pastel yellow page, purple accents
+The reference mock inverted. Warm and the most distinctive of the three.
+
+**One real problem, visible in the screenshot:** the yellow `FILLING UP` badge loses most of its
+pop against a yellow page. Accent-on-accent is a weak signal, and capacity is exactly the kind of
+thing that has to stay glanceable. Fixable by moving that badge to another tone, but it is a mark
+against the direction rather than a detail.
+
+### Sky — pastel blue page, purple and yellow accents
+The calmest of the three, and the one I would not pick. Blue is the most crowded hue in software
+and the one §2 specifically argues against; pastel blue softens the corporate read but does not
+remove it. It is the only candidate where the page could belong to any app.
+
+---
+
+## 5. Recommendation: **Lilac**
+
+Updated from Almanac after the pastel brief. Three reasons:
+
+1. **It is the brief, literally.** Pastel purple, soft yellow, descriptions on white.
+2. **It keeps the logo.** Lilac is a lightened, desaturated version of the same purple family the
+   hot-air-balloon mark already uses, so the identity survives without a redraw. Of the six
+   candidates only Lilac and Dusk can say that.
+3. **The colour is in the field, not the controls**, which is what "a drop of colour, nothing too
+   much" actually describes — and it satisfies the same instinct Almanac did, in a pastel register.
+
+**Butter** is the runner-up and the more distinctive of the two; take it if you want the app to
+look less like anything else, and accept fixing the accent-on-accent badge problem.
+
+I would not ship **Sky** — pastel or not, blue is the position we spend §2 arguing against.
+
+**Almanac** remains the strongest non-pastel option and the most restrained thing here. It is still
+the pick if you ever decide the app should read editorial rather than friendly.
 
 **Not yet applied.** `src/design/tokens.ts` still ships the current palette. Say which one and I
 will swap the tokens — it is a one-file change by construction, and the contrast audit will keep it
