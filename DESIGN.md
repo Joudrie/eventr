@@ -71,22 +71,28 @@ decorate one.**
 
 Purple and yellow stay, but disciplined — they're a **brand**, not a paint bucket.
 
+Shipping palette is **Lilac** — chosen in `docs/COLOR-STUDY.md` from six candidates.
+
 ```
-ink        #14121A   near-black. body text, borders, most type.
-paper      #FFFFFF   card and sheet backgrounds
-bone       #F4F2ED   page background. warm, not blue-grey.
-grape      #6B2FD6   brand purple. headers, active states, the wordmark.
-grape-deep #3E1A80   pressed states, dark surfaces
-sun        #FFC72C   accent only. prices, verified state, the post button.
-slate      #5F5B6B   secondary text. the only grey.
-flag       #C4342B   destructive, cancelled, report
+ink         #191428   near-black, purple-leaning. body text, borders, most type.
+paper       #FFFFFF   card and sheet backgrounds
+lilac       #F2EDFB   page background. pastel purple.
+lilac-deep  #E6DCF6   sunken surfaces, skeletons
+grape       #6035B8   brand. active chips, the wordmark, the Going fill.
+grape-deep  #42217F   pressed states
+sun         #FFDE7A   accent only. Interested, capacity badges.
+slate       #5B5270   secondary text. the only grey.
+flag        #B02D26   destructive, cancelled, report
 ```
 
 Rules:
-- Purple is chrome (header, active chips, wordmark). It is **not** the page background — a wall of
-  saturated purple behind scrolling content is both a tell and an accessibility problem.
+- **The pastel is the page; cards stay white.** A pastel cannot carry body text and cannot be text
+  on white, so a tinted field behind white cards is its only honest job — and it keeps every
+  description on plain white, where long text is easiest to read.
+- Purple is chrome and fills, never the page. A wall of saturated purple behind scrolling content
+  is both a tell and an accessibility problem.
 - Yellow is accent only. Never a large fill. Never a text color on white (fails contrast).
-- Everything ships checked at **WCAG AA**. `sun` on `ink` passes; `sun` on `paper` does not.
+- Everything ships checked at **WCAG AA**, enforced by `npm run audit:contrast`.
 
 ### Type
 
@@ -111,8 +117,10 @@ label       11/12  bold     ALL CAPS, tracked +0.08em — category chips, SPONSO
 
 Structured, not centered. Photo left at a fixed 88px square. Title dominant. Price right-aligned
 in display weight — the mock's big loud price is the best idea in it, keep it. Meta row along the
-bottom: distance · start time · going count. Verified check inline after the title at text size,
-not a floating badge sticker.
+bottom: distance · start time · going count. The verified check pins to the **right edge of the
+meta row**, so it lands at one constant x on every card — inline after the title its position moved
+with the title's length and jumped whenever the title wrapped, which made a column of cards look
+misaligned even though each was individually correct.
 
 ### Motion
 

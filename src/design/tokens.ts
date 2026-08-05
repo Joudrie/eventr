@@ -12,34 +12,38 @@
  * semantic `theme` below, so dark mode and future retheming stay a one-file change.
  */
 export const palette = {
-  ink: '#14121A',
-  inkSoft: '#2A2733',
+  ink: '#191428',
   paper: '#FFFFFF',
-  bone: '#F4F2ED',
-  boneDeep: '#E7E3DA',
-
-  grape: '#6B2FD6',
-  grapeDeep: '#3E1A80',
-  grapeLight: '#A87DFF',
-  /** Dark-mode pressed state. Stays light so `ink` remains legible on it. */
-  grapeMid: '#9A6DF5',
-
-  sun: '#FFC72C',
-  sunDeep: '#D9A312',
 
   /**
-   * Darkened from the #6A6675 in DESIGN.md: the original measured 4.52:1 on `bone`,
-   * which clears WCAG AA by 0.02 and fails the moment anything shifts. 5.3:1 here.
+   * The pastel field. This is the page, and cards stay `paper` on top of it.
+   * A pastel cannot carry body text and cannot be text on white, so a tinted field
+   * behind white cards is its only honest job — which also keeps every description
+   * on plain white, where long text is easiest to read. See docs/COLOR-STUDY.md.
    */
-  slate: '#5F5B6B',
-  slateLight: '#9A96A6',
+  lilac: '#F2EDFB',
+  lilacDeep: '#E6DCF6',
 
-  flag: '#C4342B',
-  flagLight: '#E8635A',
+  /** Deeper members of the same family, because these have to clear 4.5:1 as text. */
+  grape: '#6035B8',
+  grapeDeep: '#42217F',
+  grapeLight: '#C4AAF5',
+  /** Dark-mode pressed state. Stays light so `ink` remains legible on it. */
+  grapeMid: '#A98BE8',
 
-  night: '#0E0D12',
-  nightSurface: '#1A1820',
-  nightRaised: '#232029',
+  /** Accent only, and only ever as a fill behind `ink`. Never text on white. */
+  sun: '#FFDE7A',
+  sunDeep: '#E5BE45',
+
+  slate: '#5B5270',
+  slateLight: '#A79CC2',
+
+  flag: '#B02D26',
+  flagLight: '#EE7268',
+
+  night: '#141020',
+  nightSurface: '#1E1830',
+  nightRaised: '#28203D',
 } as const;
 
 /* -------------------------------------------------------------------- theme */
@@ -80,18 +84,18 @@ export type Theme = {
 export const lightTheme: Theme = {
   scheme: 'light',
   color: {
-    page: palette.bone,
+    page: palette.lilac,
     surface: palette.paper,
     surfaceRaised: palette.paper,
-    surfaceSunken: palette.boneDeep,
+    surfaceSunken: palette.lilacDeep,
 
     textPrimary: palette.ink,
     textSecondary: palette.slate,
     textOnBrand: palette.paper,
     textOnAccent: palette.ink,
 
-    border: 'rgba(20, 18, 26, 0.12)',
-    borderStrong: 'rgba(20, 18, 26, 0.50)',
+    border: 'rgba(25, 20, 40, 0.12)',
+    borderStrong: 'rgba(25, 20, 40, 0.50)',
 
     brand: palette.grape,
     brandPressed: palette.grapeDeep,
@@ -99,8 +103,8 @@ export const lightTheme: Theme = {
     accentPressed: palette.sunDeep,
     danger: palette.flag,
 
-    overlay: 'rgba(20, 18, 26, 0.40)',
-    skeleton: palette.boneDeep,
+    overlay: 'rgba(25, 20, 40, 0.40)',
+    skeleton: palette.lilacDeep,
   },
 };
 
@@ -112,7 +116,7 @@ export const darkTheme: Theme = {
     surfaceRaised: palette.nightRaised,
     surfaceSunken: palette.night,
 
-    textPrimary: palette.bone,
+    textPrimary: '#EFEAFA',
     textSecondary: palette.slateLight,
     /**
      * Ink, not paper. The dark-scheme brand is a *light* purple, so white-on-brand
@@ -121,8 +125,8 @@ export const darkTheme: Theme = {
     textOnBrand: palette.ink,
     textOnAccent: palette.ink,
 
-    border: 'rgba(244, 242, 237, 0.14)',
-    borderStrong: 'rgba(244, 242, 237, 0.38)',
+    border: 'rgba(239, 234, 250, 0.14)',
+    borderStrong: 'rgba(239, 234, 250, 0.38)',
 
     brand: palette.grapeLight,
     /** Deeper, but still light — a pressed state that inverts lightness breaks its label. */
