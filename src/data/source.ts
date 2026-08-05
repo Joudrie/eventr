@@ -21,4 +21,10 @@ export interface DataSource {
   readonly kind: 'local' | 'supabase';
   listEvents(filters: FeedFilters): Promise<FeedPage>;
   getEvent(id: string, origin: FeedFilters['origin']): Promise<FeedEvent | null>;
+  /**
+   * How many events a set of filters would match, without paying for the rows.
+   * Drives the live count in the radius sheet — "31 events within 15 miles" turns an
+   * abstract setting into a direct answer, which is the whole point of that control.
+   */
+  countEvents(filters: FeedFilters): Promise<number>;
 }

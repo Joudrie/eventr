@@ -37,9 +37,10 @@ export const strings = {
     verifiedOnly: 'Verified only',
     clear: 'Clear',
     apply: 'Apply',
-    // The live count while dragging the radius slider — the number is the whole point.
+    // The live match count in the radius sheet — the number is the whole point of the
+    // control, so it is shown before you commit rather than after.
     matchCount: (count: number, miles: number) =>
-      `${count} ${count === 1 ? 'event' : 'events'} within ${miles} miles`,
+      `${count} ${count === 1 ? 'event' : 'events'} within ${miles} ${miles === 1 ? 'mile' : 'miles'}`,
   },
 
   rsvp: {

@@ -231,6 +231,10 @@ export const localSource: DataSource = {
     return queryLocalEvents(filters);
   },
 
+  async countEvents(filters) {
+    return queryLocalEvents({ ...filters, limit: 1, offset: 0 }).total;
+  },
+
   async getEvent(id, origin) {
     const seed = SEED_EVENTS.find((event) => event.id === id);
     if (!seed) return null;

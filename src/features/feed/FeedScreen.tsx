@@ -42,7 +42,15 @@ import { border, size as sizeTokens, space } from '@/design/tokens';
 import { metersToMiles } from '@/lib/geo';
 import { usePreferences } from '@/lib/preferences';
 import { useEventsQuery } from '@/lib/queries/events';
-import { METERS_PER_MILE, RADIUS_OPTIONS_MI, type FeedEvent, type FeedWindow } from '@/types/event';
+import {
+  CATEGORY_LABELS,
+  METERS_PER_MILE,
+  RADIUS_OPTIONS_MI,
+  type EventCategory,
+  type FeedEvent,
+  type FeedWindow,
+} from '@/types/event';
+import { CategorySheet, PriceSheet, RadiusSheet } from './FilterSheets';
 import { EventCard } from './EventCard';
 import { forgetFeedOffset, recallFeedOffset, rememberFeedOffset } from './scrollMemory';
 import { TimeTabs } from './TimeTabs';
@@ -64,6 +72,11 @@ export function FeedScreen({ onOpenEvent }: { onOpenEvent?: (event: FeedEvent) =
 
   const [window, setWindow] = useState<FeedWindow>('all');
   const [now, setNow] = useState(() => new Date());
+
+  const [freeOnly, setFreeOnly] = useState(false);
+  const [maxPrice, setMaxPrice] = useState<number | null>(null);
+  const [categories, setCategories] = useState<readonly EventCategory[] | null>(null);
+  const [openSheet, setOpenSheet] = useState<'radius' | 'price' | 'category' | null>(null);
 
   const listRef = useAnimatedRef<FlatList<FeedEvent>>();
   /**
@@ -87,12 +100,12 @@ export function FeedScreen({ onOpenEvent }: { onOpenEvent?: (event: FeedEvent) =
       radiusM: preferences.radiusM,
       window,
       sort: 'ranked' as const,
-      categories: null,
-      freeOnly: false,
-      maxPrice: null,
+      categories,
+      freeOnly,
+      maxPrice,
       verifiedOnly: false,
     }),
-    [preferences.town, preferences.radiusM, window],
+    [preferences.town, preferences.radiusM, window, categories, freeOnly, maxPrice],
   );
 
   const query = useEventsQuery(queryInput);
@@ -191,21 +204,44 @@ export function FeedScreen({ onOpenEvent }: { onOpenEvent?: (event: FeedEvent) =
     setWindow(next);
   };
 
-  const changeRadius = (nextMiles: number) => {
+  /** Every filter change replaces the list, so the remembered offset stops meaning anything. */
+  const resetScroll = () => {
     forgetFeedOffset();
     listRef.current?.scrollToOffset({ offset: 0, animated: false });
-    setRadius(nextMiles * METERS_PER_MILE);
   };
 
-  const cycleRadius = () => {
-    const index = RADIUS_OPTIONS_MI.indexOf(miles as (typeof RADIUS_OPTIONS_MI)[number]);
-    changeRadius(RADIUS_OPTIONS_MI[(index + 1) % RADIUS_OPTIONS_MI.length] ?? 10);
+  const changeRadius = (nextMiles: number) => {
+    resetScroll();
+    setRadius(nextMiles * METERS_PER_MILE);
   };
 
   const widen = () => {
     const larger = RADIUS_OPTIONS_MI.find((option) => option > miles);
     if (larger) changeRadius(larger);
   };
+
+  const toggleCategory = (category: EventCategory) => {
+    resetScroll();
+    setCategories((current) => {
+      const next = new Set(current ?? []);
+      if (next.has(category)) next.delete(category);
+      else next.add(category);
+      // Null rather than an empty set: "none selected" and "all categories" are the
+      // same query, and null is the one the data layer already understands.
+      return next.size === 0 ? null : [...next];
+    });
+  };
+
+  const priceLabel = freeOnly
+    ? strings.filters.freeOnly
+    : maxPrice !== null
+      ? `Under $${maxPrice}`
+      : strings.filters.anyPrice;
+
+  const categoryLabel =
+    categories && categories.length === 1
+      ? CATEGORY_LABELS[categories[0]!]
+      : strings.filters.allCategories;
 
   /* ---------------------------------------------------------------- render */
 
@@ -282,9 +318,25 @@ export function FeedScreen({ onOpenEvent }: { onOpenEvent?: (event: FeedEvent) =
       <TimeTabs value={window} onChange={changeWindow} />
 
       <View style={[styles.filters, { borderBottomColor: theme.color.border }]}>
-        <Chip label={strings.filters.radius(miles)} opensSheet onPress={cycleRadius} />
-        <Chip label={strings.filters.anyPrice} opensSheet />
-        <Chip label={strings.filters.allCategories} opensSheet />
+        <Chip
+          label={strings.filters.radius(miles)}
+          opensSheet
+          onPress={() => setOpenSheet('radius')}
+          accessibilityHint="Choose how far to search"
+        />
+        <Chip
+          label={priceLabel}
+          opensSheet
+          selected={freeOnly || maxPrice !== null}
+          onPress={() => setOpenSheet('price')}
+        />
+        <Chip
+          label={categoryLabel}
+          opensSheet
+          selected={categories !== null}
+          count={categories && categories.length > 1 ? categories.length : undefined}
+          onPress={() => setOpenSheet('category')}
+        />
       </View>
 
       <Animated.FlatList
@@ -325,6 +377,37 @@ export function FeedScreen({ onOpenEvent }: { onOpenEvent?: (event: FeedEvent) =
         }
         ItemSeparatorComponent={() => <View style={{ height: space.sm }} />}
         showsVerticalScrollIndicator={false}
+      />
+
+      <RadiusSheet
+        visible={openSheet === 'radius'}
+        onClose={() => setOpenSheet(null)}
+        filters={queryInput}
+        onPick={(radiusM) => {
+          changeRadius(Math.round(radiusM / METERS_PER_MILE));
+          setOpenSheet(null);
+        }}
+      />
+      <PriceSheet
+        visible={openSheet === 'price'}
+        onClose={() => setOpenSheet(null)}
+        filters={queryInput}
+        onApply={(next) => {
+          resetScroll();
+          setFreeOnly(next.freeOnly);
+          setMaxPrice(next.maxPrice);
+          setOpenSheet(null);
+        }}
+      />
+      <CategorySheet
+        visible={openSheet === 'category'}
+        onClose={() => setOpenSheet(null)}
+        filters={queryInput}
+        onToggle={toggleCategory}
+        onClear={() => {
+          resetScroll();
+          setCategories(null);
+        }}
       />
     </View>
   );

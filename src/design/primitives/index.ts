@@ -9,6 +9,8 @@ export type { ChipProps } from './Chip';
 export { Divider } from './Divider';
 export { Icon } from './Icon';
 export type { IconName, IconProps } from './Icon';
+export { Odometer } from './Odometer';
+export type { OdometerProps } from './Odometer';
 export { Press } from './Press';
 export type { PressFeedback, PressProps } from './Press';
 export { Sheet } from './Sheet';

@@ -49,6 +49,7 @@ import {
 } from '@/lib/links';
 import { formatEventRange, formatEventTime, isLive } from '@/lib/time';
 import type { FeedEvent } from '@/types/event';
+import { RsvpButtons } from '@/features/rsvp/RsvpButtons';
 import { takeHeroSource, type HeroRect } from './heroStore';
 
 /** Card title is 18px, detail title is 24px — the header enters at that ratio. */
@@ -228,20 +229,8 @@ export function EventDetail({ event, now, onClose }: EventDetailProps) {
             </View>
 
             <View style={styles.actions}>
-              <Button
-                label={strings.rsvp.going}
-                variant="primary"
-                feedback="commit"
-                onPress={() => {}}
-                accessibilityHint="Coming in the next phase"
-              />
-              <Button label={strings.rsvp.interested} variant="secondary" onPress={() => {}} />
+              <RsvpButtons event={event} />
             </View>
-
-            <Text variant="meta" color="textSecondary" style={styles.counts}>
-              {strings.rsvp.goingCount(event.goingCount)} ·{' '}
-              {strings.rsvp.interestedCount(event.interestedCount)}
-            </Text>
 
             <Divider />
 
@@ -399,12 +388,7 @@ const styles = StyleSheet.create({
     marginTop: space.md,
   },
   actions: {
-    flexDirection: 'row',
-    gap: space.sm,
     marginTop: space.lg,
-  },
-  counts: {
-    marginTop: space.sm,
     marginBottom: space.lg,
   },
   section: {
