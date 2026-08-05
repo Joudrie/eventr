@@ -9,6 +9,13 @@
 
 import type { EventCategory, PriceTier } from '@/types/event';
 
+/**
+ * Where a post sits in review. Everything starts `pending` and stays invisible to
+ * everyone but its author until a person decides otherwise — that promise is the
+ * difference between this and a town Facebook group.
+ */
+export type ReviewStatus = 'pending' | 'approved' | 'rejected';
+
 /** Who a boost is aimed at. Priced differently because they cost differently to fill. */
 export type BoostReach = 'town' | 'region';
 
@@ -45,6 +52,9 @@ export type DraftEvent = {
    * app takes a payment, and `paidAt` stays null until something outside it does.
    */
   readonly boost: BoostRequest | null;
+  readonly review: ReviewStatus;
+  /** Why it was rejected, shown to the poster. Null unless rejected. */
+  readonly reviewNote: string | null;
   readonly createdAt: string;
 };
 

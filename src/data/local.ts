@@ -173,7 +173,7 @@ function draftToFeedEvent(
     goingCount: 0,
     interestedCount: 0,
     commentCount: 0,
-    pendingReview: true,
+    pendingReview: draft.review === 'pending',
     distanceM,
     score: eventScore({
       distanceM,
@@ -251,7 +251,12 @@ function matchesWindow(event: FeedEvent, filters: FeedFilters, now: Date): boole
 
 export function queryLocalEvents(filters: FeedFilters, now: Date = new Date()): FeedPage {
   const projected = [
-    ...readMyEvents().map((draft) => draftToFeedEvent(draft, filters.origin, filters.radiusM, now)),
+    // A rejected post leaves the feed entirely, including for the person who wrote it.
+    // Leaving it visible only to its author would be a quieter kind of dishonesty: it
+    // would look live to the one person who cannot tell the difference.
+    ...readMyEvents()
+      .filter((draft) => draft.review !== 'rejected')
+      .map((draft) => draftToFeedEvent(draft, filters.origin, filters.radiusM, now)),
     ...SEED_EVENTS.map((seed) => toFeedEvent(seed, filters.origin, filters.radiusM, now)),
   ];
 

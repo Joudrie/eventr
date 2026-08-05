@@ -149,6 +149,9 @@ export function PostForm({ defaultTown, onSubmit, onCancel }: PostFormProps) {
       contactEmail: contactEmail.trim(),
       // Boosting happens after an event is live, never at the moment of posting.
       boost: null,
+      // Nothing goes out unreviewed. This is the promise the product is built on.
+      review: 'pending',
+      reviewNote: null,
       createdAt: new Date().toISOString(),
     });
   };

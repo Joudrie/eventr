@@ -72,6 +72,31 @@ export const strings = {
     house: 'From the makers of Eventr',
   },
 
+  moderate: {
+    eyebrow: 'Review queue',
+    title: 'Waiting on you',
+    waiting: (n: number) =>
+      n === 0 ? 'Nothing waiting' : n === 1 ? '1 post to read' : `${n} posts to read`,
+    /**
+     * Stated up front rather than left for the next person to discover. An unlisted
+     * route is not access control, and pretending otherwise is how a review queue ends
+     * up editable by anyone who guesses a URL.
+     */
+    localOnly:
+      'This reads posts saved on this device. There is no server yet, so it cannot show anyone else\u2019s, and the unlisted address is not a login. Both change when the backend lands.',
+    approve: 'Approve',
+    reject: 'Reject',
+    reopen: 'Put back in the queue',
+    boostRequested: 'Boost requested',
+    defaultReason: "Didn't pass review.",
+    loading: 'Reading what you have saved.',
+    empty: {
+      pending: 'Nothing waiting. Everything posted here has been decided.',
+      approved: 'Nothing approved yet.',
+      rejected: 'Nothing rejected. Good.',
+    },
+  },
+
   location: {
     eventCount: (n: number) =>
       n === 0 ? 'Nothing on right now' : n === 1 ? '1 event' : `${n} events`,

@@ -28,10 +28,11 @@ import {
   parseMyEvents,
   writeMyEventsMirror,
   type BoostReach,
+  type ReviewStatus,
   type DraftEvent,
 } from './myEventsStore';
 
-export type { BoostReach, BoostRequest, DraftEvent } from './myEventsStore';
+export type { BoostReach, BoostRequest, DraftEvent, ReviewStatus } from './myEventsStore';
 
 type MyEventsContextValue = {
   readonly myEvents: readonly DraftEvent[];
@@ -41,6 +42,8 @@ type MyEventsContextValue = {
   /** Records that the poster wants this boosted. Charges nothing, because it cannot. */
   requestBoost: (id: string, reach: BoostReach) => void;
   cancelBoost: (id: string) => void;
+  /** Records a review decision. The operator surface, not something a poster can call. */
+  setReview: (id: string, review: ReviewStatus, note?: string | null) => void;
 };
 
 const MyEventsContext = createContext<MyEventsContextValue>({
@@ -50,6 +53,7 @@ const MyEventsContext = createContext<MyEventsContextValue>({
   removeEvent: () => {},
   requestBoost: () => {},
   cancelBoost: () => {},
+  setReview: () => {},
 });
 
 export function MyEventsProvider({ children }: { children: ReactNode }) {
@@ -100,6 +104,14 @@ export function MyEventsProvider({ children }: { children: ReactNode }) {
         ),
       cancelBoost: (id) =>
         persist(myEvents.map((event) => (event.id === id ? { ...event, boost: null } : event))),
+      setReview: (id, review, note = null) =>
+        persist(
+          myEvents.map((event) =>
+            event.id === id
+              ? { ...event, review, reviewNote: review === 'rejected' ? note : null }
+              : event,
+          ),
+        ),
     }),
     [myEvents, ready, persist],
   );
